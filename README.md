@@ -2,7 +2,19 @@
 
 A dark Emacs theme inspired by 玄昌石 (Genshō stone) — a deep, elegant black stone with subtle texture and quiet presence.
 
-> **Note**: This theme is under active personal development. Expect frequent changes.
+This is a personal theme under heavy development. The color palette and overall design are being actively rewritten.
+
+> **Note**: Expect frequent breaking changes. When using from dotfiles with straight.el, pin to a specific commit or branch for stability.
+
+## Installation (using develop branch for active work)
+
+```elisp
+(use-package gensho-theme
+  :straight (:host github :repo "yoshzucker/gensho-theme" :branch "develop")
+  :config
+  (setq frame-background-mode 'dark)
+  (load-theme 'gensho t))
+```
 
 ## Installation
 
