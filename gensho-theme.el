@@ -25,7 +25,7 @@
 ;;
 ;; Programmatic palette access:
 ;;   (gensho-palette)        ; internal semantic keys (mono0-7 + 8 hues)
-;;   (gensho-export-palette 'json 'neon)  ; ANSI/terminal names for external tools
+;;   (gensho-export-palette 'json 'wet)  ; ANSI/terminal names for external tools
 
 ;;; Code:
 
@@ -35,41 +35,41 @@
 (deftheme gensho
   "A dual light/dark theme inspired by 玄昌石 (Genshō stone) — dark elegance with a quiet, washed-stone light variant.")
 
-(defconst gensho-downpour-hsl
-  '((mono0   . (240   5  26))
-    (mono1   . (240   5  33))
-    (mono2   . (240   5  40))
-    (mono3   . (240   5  47))
-    (mono4   . (240   5  54))
-    (mono5   . (240   5  61))
-    (mono6   . (240   5  68))
-    (mono7   . (240   5  75))
-    (red     . (  0  95  61))
-    (orange  . ( 30  95  61))
-    (yellow  . ( 70  95  61))
-    (green   . (110  95  61))
-    (cyan    . (200  95  61))
-    (blue    . (250  95  61))
-    (purple  . (280  95  61))
-    (magenta . (310  95  61))))
+(defconst gensho-dry-hsl
+  '((mono0   . (200   5  26))
+    (mono1   . (200   5  30))
+    (mono2   . (200   5  34))
+    (mono3   . (200   5  38))
+    (mono4   . (200   5  42))
+    (mono5   . (200   5  46))
+    (mono6   . (200   5  50))
+    (mono7   . (200   5  54))
+    (red     . (  0 100  58))
+    (orange  . ( 30 100  58))
+    (yellow  . ( 70 100  58))
+    (green   . (110 100  58))
+    (cyan    . (200 100  58))
+    (blue    . (250 100  58))
+    (purple  . (280 100  58))
+    (magenta . (310 100  58))))
 
-(defconst gensho-neon-hsl
-  '((mono0   . (240   5  12))
-    (mono1   . (240   5  19))
-    (mono2   . (240   5  26))
-    (mono3   . (240   5  33))
-    (mono4   . (240   5  40))
-    (mono5   . (240   5  47))
-    (mono6   . (240   5  54))
-    (mono7   . (240   5  61))
-    (red     . (  0  95  61))
-    (orange  . ( 30  95  61))
-    (yellow  . ( 70  95  61))
-    (green   . (110  95  61))
-    (cyan    . (200  95  61))
-    (blue    . (250  95  61))
-    (purple  . (280  95  61))
-    (magenta . (310  95  61))))
+(defconst gensho-wet-hsl
+  '((mono0   . (200   5  12))
+    (mono1   . (200   5  19))
+    (mono2   . (200   5  26))
+    (mono3   . (200   5  33))
+    (mono4   . (200   5  40))
+    (mono5   . (200   5  47))
+    (mono6   . (200   5  54))
+    (mono7   . (200   5  61))
+    (red     . (  0 100  61))
+    (orange  . ( 30 100  61))
+    (yellow  . ( 60 100  61))
+    (green   . (120 100  61))
+    (cyan    . (210 100  61))
+    (blue    . (250 100  61))
+    (purple  . (290 100  61))
+    (magenta . (320 100  61))))
 
 (defun gensho--hex-palette (hsl-palette)
   "Convert HSL alist to hex alist using `hsluv-hsluv-to-hex'."
@@ -78,16 +78,16 @@
            for hsl = (cdr entry)
            collect `(,name . ,(hsluv-hsluv-to-hex hsl))))
 
-(defconst gensho-downpour
-  (gensho--hex-palette gensho-downpour-hsl))
+(defconst gensho-dry
+  (gensho--hex-palette gensho-dry-hsl))
 
-(defconst gensho-neon
-  (gensho--hex-palette gensho-neon-hsl))
+(defconst gensho-wet
+  (gensho--hex-palette gensho-wet-hsl))
 
 ;;;###autoload
 (defun gensho-palette (&optional variant)
   "Return hex color alist for VARIANT or current `frame-background-mode'.
-VARIANT is `neon' or `downpour' (defaults from `frame-background-mode').
+VARIANT is `wet' or `dry' (defaults from `frame-background-mode').
 
 The alist uses the theme's internal semantic palette keys:
   mono0..mono7  (perceptual gray ramp; mono0 is background, mono7 foreground
@@ -98,8 +98,8 @@ For external tools / terminal emulators prefer `gensho-export-palette',
 which maps to conventional ANSI/terminal color names (background, black,
 brightblack, ...)."
   (let ((v (or variant
-               (if (eq frame-background-mode 'light) 'downpour 'neon))))
-    (if (eq v 'downpour) gensho-downpour gensho-neon)))
+               (if (eq frame-background-mode 'light) 'dry 'wet))))
+    (if (eq v 'dry) gensho-dry gensho-wet)))
 
 (let* ((class '((class color) (min-colors 89)))
        (colors (gensho-palette))
@@ -277,7 +277,7 @@ brightblack, ...)."
 (defun gensho-export-palette (format &optional variant)
   "Export the palette for external tools.
 FORMAT is `json', `alist', or `hex-list'.
-VARIANT is `neon' or `downpour' (defaults from `frame-background-mode')."
+VARIANT is `wet' or `dry' (defaults from `frame-background-mode')."
   (let* ((palette (gensho-palette variant))
          ;; ANSI names in the 0-15 slot order for hex-list.
          (ordered-keys '(black red green yellow blue magenta cyan white
