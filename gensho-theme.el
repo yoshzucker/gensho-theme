@@ -118,9 +118,7 @@ brightblack, ...)."
        (cyan   (alist-get 'cyan colors))
        (blue   (alist-get 'blue colors))
        (purple (alist-get 'purple colors))
-       (magenta (alist-get 'magenta colors))
-       (primary (alist-get 'purple colors))
-       (secondary (alist-get 'blue colors)))
+       (magenta (alist-get 'magenta colors)))
 
   ;; Mono ramp roles (perceptual steps from HSLuv; follow systematic gray
   ;; levels for visual hierarchy, e.g. adjacent steps for related elements).
@@ -134,7 +132,7 @@ brightblack, ...)."
    `(default ((,class (:foreground ,mono7 :background ,mono0))))
    `(fixed-pitch ((,class (:family unspecified))))
    `(variable-pitch ((,class (:family unspecified))))
-   `(cursor ((,class (:background ,primary))))
+   `(cursor ((,class (:background ,mono6))))
    `(fringe ((,class (:background ,mono0))))
    `(border ((,class (:background ,mono0))))
    `(internal-border ((,class (:background ,mono0))))
@@ -149,17 +147,17 @@ brightblack, ...)."
    `(error ((,class (:foreground ,red))))
    `(warning ((,class (:foreground ,yellow))))
    `(success ((,class (:foreground ,green))))
-   `(minibuffer-prompt ((,class (:foreground ,primary))))
+   `(minibuffer-prompt ((,class (:foreground ,mono6))))
    `(tooltip ((,class (:foreground ,mono7 :background ,orange))))
 
    ;; --- Modeline, header-line, tab-bar (UI chrome) ---
-   `(mode-line ((,class (:foreground ,mono0 :background ,primary))))
-   `(mode-line-inactive ((,class (:foreground ,primary :background ,mono1))))
+   `(mode-line ((,class (:foreground ,mono7 :background ,mono2))))
+   `(mode-line-inactive ((,class (:foreground ,mono6 :background ,mono1))))
    `(mode-line-buffer-id ((,class (:weight unspecified))))
-   `(header-line ((,class (:foreground ,primary :background ,mono3 :weight unspecified))))
+   `(header-line ((,class (:foreground ,mono6 :background ,mono3 :weight unspecified))))
    `(tab-bar ((,class (:foreground ,mono7 :background ,mono0))))
-   `(tab-bar-tab ((,class (:foreground ,mono0 :background ,primary :box unspecified))))
-   `(tab-bar-tab-inactive ((,class (:foreground ,primary :background ,mono1))))
+   `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono2 :box unspecified))))
+   `(tab-bar-tab-inactive ((,class (:foreground ,mono6 :background ,mono1))))
 
    ;; --- Font-lock (syntax primitives; bases for inherits) ---
    `(font-lock-comment-face ((,class (:foreground ,mono5 :slant italic))))
@@ -190,8 +188,8 @@ brightblack, ...)."
    `(consult-buffer ((,class (:foreground ,mono6))))
    `(consult-file ((,class (:foreground ,mono5))))
    `(corfu-default ((,class (:background ,mono1))))
-   `(corfu-current ((,class (:foreground ,primary :background ,mono1))))
-   `(corfu-bar ((,class (:background ,primary))))
+   `(corfu-current ((,class (:foreground ,mono6 :background ,mono1))))
+   `(corfu-bar ((,class (:background ,mono5))))
 
    ;; --- Navigation & project (dired, magit, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
