@@ -288,11 +288,11 @@ brightblack, ...)."
    `(corfu-current ((,class (:foreground ,mono6 :background ,mono1))))
    `(corfu-bar ((,class (:background ,mono5))))
 
-   ;; --- Navigation & project (dired, magit, etc.) ---
+   ;; --- Navigation & project (dired, bookmark, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
-   `(treemacs-root-face ((,class (:height unspecified))))
    `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5 :background unspecified))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
+   `(treemacs-root-face ((,class (:height unspecified))))
 
    ;; --- Dev tools (eglot, compilation, ein) ---
    `(eglot-mode-line ((,class (:weight unspecified))))
