@@ -120,21 +120,108 @@ brightblack, ...)."
        (purple (alist-get 'purple colors))
        (magenta (alist-get 'magenta colors)))
 
-  ;; Mono ramp roles (perceptual steps from HSLuv; follow systematic gray
-  ;; levels for visual hierarchy, e.g. adjacent steps for related elements).
-  ;; 0: main bg / strong pop bg; 1: subtle bg (region etc.); 2: alt subtle;
-  ;; 3: medium subtle; 4: faint; 5: comments/secondary; 6: prominent secondary;
-  ;; 7: main fg.
+  ;; Design notes distilled from surveys of other themes (catppuccin, nord,
+  ;; solarized, zenburn, modus, gruvbox, and similar). These record general
+  ;; patterns and derived principles that can inform the design of *any* theme.
+  ;; Gensho's palette definitions and face settings (below) are one concrete
+  ;; application of them.
 
-  ;; Hue usage best practices (for slate/玄昌石 mono* layers feel; from zenburn, catppuccin, modus/ef, solarized):
-  ;; - Limit distinct hues to 5-7; many faces inherit or use mono shades.
-  ;; - Variables often use base text (mono6/7) or faint, not dedicated bright hue (catppuccin, zenburn).
-  ;; - Comments/doc/string: muted hue or mono/shadow for low weight.
-  ;; - Core (keyword/function/type/constant/builtin): distinct hues, prefer muted/faint/cooler so they accent slate without dominating.
-  ;; - Alerts (error/warning/success): red/yellow/green family, sparingly.
-  ;; - Interactive/search/completion: 1-2 accent hues (e.g. orange/green) + mono.
-  ;; - Org/magit/agenda/outlines: inherit font-lock heavily; hues only for key status (TODO=red, DONE=green, today), secondary info in mono.
-  ;; - Goal: mono* gray steps dominate visual texture; colors are semantic accents, not the surface.
+  ;; Mono ramp (perceptual lightness steps)
+  ;;
+  ;; Surveys of many themes reveal a clear, consistent pattern for gray ramps
+  ;; used to establish visual hierarchy and a layered background texture.
+  ;; Importantly, the assignment of meaning to the (typically ~8) steps of
+  ;; such a ramp is itself part of the general, survey-derived knowledge:
+  ;;
+  ;; - A perceptual ramp (typically 6-9 steps, often computed via HSLuv or
+  ;;   similar for uniform lightness) provides the foundation. The steps create
+  ;;   a subtle stacked layering that remains visible even when syntax colors
+  ;;   and UI elements are present.
+  ;; - Related chrome elements are assigned *adjacent* steps on the ramp. This
+  ;;   preserves the coherence of the layering (e.g. an active bar is one step
+  ;;   "above" its inactive counterpart).
+  ;; - A clear, recurring pattern is the assignment of semantic roles to an
+  ;;   8-step (or similar) perceptual gray ramp. This assignment of "what each
+  ;;   of the 8 levels means" is itself a general fact derived from surveys,
+  ;;   not specific to any one theme:
+  ;;     step ~0 (lowest): main background; also used as foreground for
+  ;;                       high-attention pop elements that sit on colored
+  ;;                       backgrounds.
+  ;;     step ~1 (next):   subtle backgrounds for selection, current item,
+  ;;                       highlights, matching regions, etc.
+  ;;     step ~2-3:        alt / medium subtle (active chrome bg, some
+  ;;                       highlights).
+  ;;     step ~4 (mid-low): faint / secondary (shadow, doc-face, low-
+  ;;                       priority or weekend indicators).
+  ;;     step ~5 (mid):    comments and other secondary / low-weight text
+  ;;                       and UI elements.
+  ;;     step ~6 (high-mid): prominent secondary (cursor bg, minibuffer
+  ;;                         prompt, current completion item text, inactive
+  ;;                         chrome fg, variables/identifiers as the most
+  ;;                         frequent text, etc.).
+  ;;     step ~7 (highest): primary / main foreground (default text,
+  ;;                        active chrome text, etc.).
+  ;;   (The exact numbering and lightness deltas are implementation
+  ;;   details; the *role assignment to the 8 levels* is the survey-derived
+  ;;   universal pattern.)
+  ;; - The overall derived principle: the gray ramp layers supply the primary
+  ;;   visual rhythm; color is used as accent on top of this foundation.
+
+  ;; Accent colors (hues)
+  ;;
+  ;; A. Observed convergence on semantic mappings
+  ;;    Across the surveyed themes there is strong agreement on hue choices for
+  ;;    common semantic roles (chosen for harmony, distinguishability, and
+  ;;    modern "feel"):
+  ;;    - Strings/literals: green (positive, harmonious; dominant modern
+  ;;      choice).
+  ;;    - Keywords and control flow: purple or mauve.
+  ;;    - Builtins: red or orange-red (pairs with error).
+  ;;    - Functions and calls: often magenta or a blue/magenta family member.
+  ;;    - Types: cyan or blue (provides structure with low pop).
+  ;;    - Constants: frequently a blue or near-background hue (avoids over-use
+  ;;      of warm complements).
+  ;;    - Warnings/alerts: yellow (kept distinct from error red).
+  ;;    - Errors: red (near-universal); success/DONE states: green.
+  ;;
+  ;; B. Strategies for choosing specific hues against a tinted background
+  ;;    When the background itself carries a hue (even a very low-saturation
+  ;;    one), two broad strategies are observable:
+  ;;    - Analogous / cool-bias: select accent hues close to the background's
+  ;;      own hue. This favors calm, harmony, and lets low-saturation gray
+  ;;      layers stay prominent (seen in solarized cool variants, nord, many
+  ;;      "slate" or muted dark themes).
+  ;;    - Complementary / higher-pop: make greater use of opposing or warmer
+  ;;      hues for stronger vibrancy and immediate visual distinction.
+  ;;
+  ;; C. Principles shared by both strategies
+  ;;    - Strictly limit the number of distinct hues present in any single
+  ;;      buffer or major UI component.
+  ;;    - Rely heavily on the mono gray ramp plus `:inherit` for the majority
+  ;;      of faces (outlines, directory faces, titles, etc.) so that hue noise
+  ;;      does not overwhelm the gray foundation.
+  ;;    - Reserve the most saturated, attention-grabbing hues for short-lived,
+  ;;      interactive or transient overlays only (isearch, tooltips, avy
+  ;;      leads, orderless match highlights, etc.). Persistent syntax and
+  ;;      structural elements stay within the gray ramp or the limited
+  ;;      semantic hues.
+  ;;
+  ;; D. Other recurring tendencies
+  ;;    - Links often use a cool hue (blue) to differentiate navigation from
+  ;;      the green used for strings.
+  ;;    - Org/Magit/Agenda and similar rich modes inherit the font-lock and
+  ;;      mono decisions heavily; hues are introduced only for key status
+  ;;      indicators (TODO, DONE). Secondary or historical information (past
+  ;;      scheduled, weekend dates, etc.) stays in the gray ramp.
+  ;;    - Tables, dates, and calendar elements commonly inherit from the type
+  ;;      face (cyan/blue) or fall back to mono.
+
+  ;; Gensho follows the analogous/cool-bias strategy for its accent hues. Its
+  ;; backgrounds are low-saturation blue-tinted grays (hue ~200), and the
+  ;; design places primary emphasis on the dominance of the mono gray layers
+  ;; over high-contrast color pop. The concrete hue assignments and the
+  ;; extensive use of mono + :inherit in the face settings below are
+  ;; applications of the general patterns described above.
 
   (custom-theme-set-faces
    'gensho
@@ -152,7 +239,7 @@ brightblack, ...)."
    `(shadow ((,class (:foreground ,mono4))))
    `(match ((,class (:foreground ,mono0 :background ,green))))
    `(show-paren-match ((,class (:background ,mono1 :weight bold))))
-   `(link ((,class (:foreground ,green :underline t))))
+   `(link ((,class (:foreground ,blue :underline t))))
    `(link-visited ((,class (:foreground ,purple :underline t))))
    `(error ((,class (:foreground ,red))))
    `(warning ((,class (:foreground ,yellow))))
@@ -171,15 +258,15 @@ brightblack, ...)."
 
    ;; --- Font-lock (syntax primitives; bases for inherits) ---
    `(font-lock-comment-face ((,class (:foreground ,mono5 :slant italic))))
-   `(font-lock-string-face ((,class (:foreground ,yellow))))
+   `(font-lock-string-face ((,class (:foreground ,green))))
    `(font-lock-doc-face ((,class (:foreground ,mono4))))
    `(font-lock-keyword-face ((,class (:foreground ,purple))))
-   `(font-lock-builtin-face ((,class (:foreground ,green))))
+   `(font-lock-builtin-face ((,class (:foreground ,red))))
    `(font-lock-variable-name-face ((,class (:foreground ,mono6))))
    `(font-lock-function-name-face ((,class (:foreground ,magenta))))
    `(font-lock-type-face ((,class (:foreground ,cyan))))
-   `(font-lock-constant-face ((,class (:foreground ,orange))))
-   `(font-lock-warning-face ((,class (:foreground ,red))))
+   `(font-lock-constant-face ((,class (:foreground ,blue))))
+   `(font-lock-warning-face ((,class (:foreground ,yellow))))
 
    ;; --- Search, jump, isearch (interactive highlights) ---
    `(isearch ((,class (:foreground ,mono0 :background ,orange))))
@@ -205,7 +292,7 @@ brightblack, ...)."
    `(dired-directory ((,class (:inherit font-lock-type-face))))
    `(magit-section-heading ((,class (:foreground ,mono6 :background ,mono1 :weight bold))))
    `(treemacs-root-face ((,class (:height unspecified))))
-   `(bookmark-face ((,class (:distant-foreground ,mono5 :background unspecified))))
+   `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5 :background unspecified))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
 
    ;; --- Dev tools (eglot, compilation, ein) ---
@@ -243,10 +330,10 @@ brightblack, ...)."
    `(org-date ((,class (:inherit font-lock-type-face))))
    `(org-time-grid ((,class (:inherit font-lock-comment-face))))
    `(org-scheduled ((,class (:foreground ,green))))
-   `(org-scheduled-today ((,class (:foreground ,blue))))
+   `(org-scheduled-today ((,class (:foreground ,mono6))))
    `(org-scheduled-previously ((,class (:foreground ,mono5))))
    `(org-upcoming-deadline ((,class (:inherit org-scheduled-previously))))
-   `(org-agenda-structure ((,class (:foreground ,green :weight unspecified))))
+   `(org-agenda-structure ((,class (:foreground ,mono6 :weight unspecified))))
    `(org-agenda-current-time ((,class (:inherit font-lock-keyword-face))))
    `(org-agenda-date-today ((,class (:foreground ,mono6 :weight bold))))
    `(org-agenda-date-weekend ((,class (:foreground ,mono4))))
