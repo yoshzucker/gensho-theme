@@ -126,6 +126,16 @@ brightblack, ...)."
   ;; 3: medium subtle; 4: faint; 5: comments/secondary; 6: prominent secondary;
   ;; 7: main fg.
 
+  ;; Hue usage best practices (for slate/玄昌石 mono* layers feel; from zenburn, catppuccin, modus/ef, solarized):
+  ;; - Limit distinct hues to 5-7; many faces inherit or use mono shades.
+  ;; - Variables often use base text (mono6/7) or faint, not dedicated bright hue (catppuccin, zenburn).
+  ;; - Comments/doc/string: muted hue or mono/shadow for low weight.
+  ;; - Core (keyword/function/type/constant/builtin): distinct hues, prefer muted/faint/cooler so they accent slate without dominating.
+  ;; - Alerts (error/warning/success): red/yellow/green family, sparingly.
+  ;; - Interactive/search/completion: 1-2 accent hues (e.g. orange/green) + mono.
+  ;; - Org/magit/agenda/outlines: inherit font-lock heavily; hues only for key status (TODO=red, DONE=green, today), secondary info in mono.
+  ;; - Goal: mono* gray steps dominate visual texture; colors are semantic accents, not the surface.
+
   (custom-theme-set-faces
    'gensho
    ;; --- Core primitives ---
@@ -165,7 +175,7 @@ brightblack, ...)."
    `(font-lock-doc-face ((,class (:foreground ,mono4))))
    `(font-lock-keyword-face ((,class (:foreground ,purple))))
    `(font-lock-builtin-face ((,class (:foreground ,green))))
-   `(font-lock-variable-name-face ((,class (:foreground ,blue))))
+   `(font-lock-variable-name-face ((,class (:foreground ,mono6))))
    `(font-lock-function-name-face ((,class (:foreground ,magenta))))
    `(font-lock-type-face ((,class (:foreground ,cyan))))
    `(font-lock-constant-face ((,class (:foreground ,orange))))
@@ -193,9 +203,9 @@ brightblack, ...)."
 
    ;; --- Navigation & project (dired, magit, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
-   `(magit-section-heading ((,class (:foreground ,yellow :background ,mono1))))
+   `(magit-section-heading ((,class (:foreground ,mono6 :background ,mono1 :weight bold))))
    `(treemacs-root-face ((,class (:height unspecified))))
-   `(bookmark-face ((,class (:distant-foreground ,blue :background unspecified))))
+   `(bookmark-face ((,class (:distant-foreground ,mono5 :background unspecified))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
 
    ;; --- Dev tools (eglot, compilation, ein) ---
@@ -234,17 +244,17 @@ brightblack, ...)."
    `(org-time-grid ((,class (:inherit font-lock-comment-face))))
    `(org-scheduled ((,class (:foreground ,green))))
    `(org-scheduled-today ((,class (:foreground ,blue))))
-   `(org-scheduled-previously ((,class (:foreground ,orange))))
+   `(org-scheduled-previously ((,class (:foreground ,mono5))))
    `(org-upcoming-deadline ((,class (:inherit org-scheduled-previously))))
    `(org-agenda-structure ((,class (:foreground ,green :weight unspecified))))
    `(org-agenda-current-time ((,class (:inherit font-lock-keyword-face))))
-   `(org-agenda-date-today ((,class (:inherit font-lock-variable-name-face))))
-   `(org-agenda-date-weekend ((,class (:inherit font-lock-type-face))))
+   `(org-agenda-date-today ((,class (:foreground ,mono6 :weight bold))))
+   `(org-agenda-date-weekend ((,class (:foreground ,mono4))))
    `(org-agenda-clocking ((,class (:slant italic))))
    `(org-habit-overdue-face ((,class (:background ,purple))))
    `(org-roam-header-line ((,class (:inherit header-line))))
    `(org-noter-notes-exist-face ((,class (:foreground ,green))))
-   `(org-noter-no-notes-exist-face ((,class (:foreground ,orange))))
+   `(org-noter-no-notes-exist-face ((,class (:foreground ,mono5))))
    `(deft-header-face ((,class (:inherit font-lock-builtin-face))))
    `(deft-title-face ((,class (:inherit font-lock-constant-face))))
 
