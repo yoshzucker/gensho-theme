@@ -290,7 +290,6 @@ brightblack, ...)."
 
    ;; --- Navigation & project (dired, magit, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
-   `(magit-section-heading ((,class (:foreground ,mono6 :background ,mono1 :weight bold))))
    `(treemacs-root-face ((,class (:height unspecified))))
    `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5 :background unspecified))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
