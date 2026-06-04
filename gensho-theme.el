@@ -35,6 +35,20 @@
 (deftheme gensho
   "A dual light/dark theme inspired by 玄昌石 (Genshō stone) — dark elegance with a quiet, washed-stone light variant.")
 
+;; Accent HSL tuning.
+;; See the detailed "Accent colors (hues)" design notes below for the full
+;; general (PCCS/色彩検定 hue-diff + harmony principles + UI practice,
+;; applicable to any theme) and gensho-specific (PCCS 類似色相配色 cool
+;; dominant + limited 中差/対照 warm seasonal cluster + なじみ原理 for
+;; rotenburo reflections on cool stone bg h~200; not pure geometric)
+;; strategy.  Base now uses s=55 (微増 after additional de-facto-respecting
+;; freq reductions in minibuffer/org/dired to address clutter/noise in
+;; completion, rich org buffers, and file info like permissions) + l slightly
+;; below fg; if frequency is further reduced, s (and optionally l) can
+;; increase for more vividness while preserving stone dominance.  Current h
+;; chosen for natural "映り込む" elements (petals, momiji, light, sky) +
+;; de-facto semantics. Additional reductions (e.g. orderless to cool cluster,
+;; dired-perm-write to mono4+underline) keep core semantics intact.
 (defconst gensho-dry-hsl
   '((mono0   . (200   5  26))
     (mono1   . (200   5  30))
@@ -44,14 +58,14 @@
     (mono5   . (200   5  46))
     (mono6   . (200   5  50))
     (mono7   . (200   5  54))
-    (red     . (  0 100  54))
-    (orange  . ( 30 100  54))
-    (yellow  . ( 70 100  54))
-    (green   . (120 100  54))
-    (cyan    . (210 100  54))
-    (blue    . (250 100  54))
-    (purple  . (290 100  54))
-    (magenta . (320 100  54))))
+    (red     . (  0  55  49))
+    (orange  . ( 30  55  49))
+    (yellow  . ( 55  55  49))
+    (green   . (130  55  49))
+    (cyan    . (202  55  49))
+    (blue    . (242  55  49))
+    (purple  . (280  55  49))
+    (magenta . (325  55  49))))
 
 (defconst gensho-wet-hsl
   '((mono0   . (200   5  12))
@@ -62,14 +76,14 @@
     (mono5   . (200   5  47))
     (mono6   . (200   5  54))
     (mono7   . (200   5  61))
-    (red     . (  0 100  61))
-    (orange  . ( 30 100  61))
-    (yellow  . ( 60 100  61))
-    (green   . (120 100  61))
-    (cyan    . (210 100  61))
-    (blue    . (250 100  61))
-    (purple  . (290 100  61))
-    (magenta . (320 100  61))))
+    (red     . (  0  55  57))
+    (orange  . ( 30  55  57))
+    (yellow  . ( 55  55  57))
+    (green   . (130  55  57))
+    (cyan    . (202  55  57))
+    (blue    . (242  55  57))
+    (purple  . (280  55  57))
+    (magenta . (325  55  57))))
 
 (defun gensho--hex-palette (hsl-palette)
   "Convert HSL alist to hex alist using `hsluv-hsluv-to-hex'."
@@ -219,9 +233,101 @@ brightblack, ...)."
   ;; Gensho follows the analogous/cool-bias strategy for its accent hues. Its
   ;; backgrounds are low-saturation blue-tinted grays (hue ~200), and the
   ;; design places primary emphasis on the dominance of the mono gray layers
-  ;; over high-contrast color pop. The concrete hue assignments and the
-  ;; extensive use of mono + :inherit in the face settings below are
-  ;; applications of the general patterns described above.
+  ;; over high-contrast color pop.
+  ;;
+  ;; === General knowledge (applicable to any theme; derived from color
+  ;; theory surveys including 色彩検定/PCCS, Itten/Judd, and de-facto UI
+  ;; theme analysis) ===
+  ;; - Hue circle and hue difference (PCCS 24-hue circle, ~15° per step;
+  ;;   色彩検定 3級 level): hue diff 0 = identical hue (vary tone only);
+  ;;   diff 1 = adjacent; 2-3 = similar (類似色相配色, harmonious, stable,
+  ;;   analogous basic); 4-7 = medium; 8-10 = contrast (対照色相配色,
+  ;;   warm/cool opposition, clear pop); 11-12 = complementary (補色, 180°,
+  ;;   strong but use carefully).
+  ;; - Geometric schemes (Itten/Judd "order principle"): diad 180°,
+  ;;   triadic 120°, tetradic square 90° or rectangle. These are
+  ;;   number-first (geometric positions for harmony) and can feel
+  ;;   artificial/sensibility-light; treat as reference only, not primary
+  ;;   for image-driven themes.
+  ;; - Other harmony principles (Judd 4 principles, 色彩検定): similarity
+  ;;   (common attributes harmonize), clarity/contrast (明瞭性), order
+  ;;   (geometric as above), familiarity (なじみ, habitual/natural combos).
+  ;;   Dominant-color scheme (one main hue family + tone variations);
+  ;;   tone-on-tone etc.
+  ;; - UI/theme practice (from nord, solarized, modus etc.): when bg is
+  ;;   tinted (low-sat hue), analogous/cool-bias (cluster near bg hue)
+  ;;   favors calm + mono-ramp prominence. Complementary/higher-pop for
+  ;;   vibrancy. Strictly limit distinct hues (4-8 total). Base (bg/fg/
+  ;;   most chrome) = mono ramp; accents limited to semantic roles.
+  ;;   De-facto semantics (strong convergence): string/literal=green,
+  ;;   keyword=purple/mauve, function=magenta or blue-magenta, type=cyan
+  ;;   or blue (low pop structure), constant=near-bg blue, builtin=red,
+  ;;   warning=yellow, error=red; success=green; link=blue. Transient/
+  ;;   highlight can use more pop. Secondary/derived faces (many org,
+  ;;   calendar, etc.) fall to mono + :inherit to avoid hue noise.
+  ;;   Distribution tactics: even spacing (balance), clustered (warms for
+  ;;   energy/alert/seasonal, cools for structure), sector emphasis.
+  ;;   Reference choice: bg hue as anchor for analogous (common for
+  ;;   tinted-bg calm themes); or key semantic / natural reference.
+  ;;   Overall process (structural, any theme): 1. de-facto semantic survey,
+  ;;   2. choose harmony type per desired image (calm vs pop vs seasonal),
+  ;;   3. limit total hues, 4. use tone/s for variation instead of more
+  ;;   hues, 5. visual tune. Hue-diff theory often for 2-4 colors; for 8+
+  ;;   use composites (dominant analogous group + contrast accents).
+  ;;
+  ;; === Gensho-specific choice (image + theory mapping, clear which
+  ;; pattern) ===
+  ;; The "wet"/"dry" naming comes from imagining 玄昌石 in a rotenburo
+  ;; (open-air hot spring), where the cool dark stone beautifully reflects
+  ;; vivid small spring/autumn flower petals, momiji (autumn leaves),
+  ;; orange outdoor light, and sky. Therefore we use a composite:
+  ;; - PCCS "類似色相配色" (hue diff 2-3) + medium/contrast for the cool
+  ;;   cluster around bg h=200 (sky/water/stone reflections, harmony +
+  ;;   mono dominance). This is "dominant-color scheme" with cool main
+  ;;   family (familiarity / なじみ from natural sky-on-stone).
+  ;; - Limited warm "中差/対照色相配色" cluster (diff ~4-10 from green,
+  ;;   higher from cool) for the "映り込む" seasonal vivid elements
+  ;;   (petals, momiji, lamp glow) -- pop but not overwhelming.
+  ;; - Large intentional gap green(~130) to cyan(~202): limits green
+  ;;   variety ("green noise" prevention), reinforces cool dominance,
+  ;;   controls effective hue diversity (aids frequency reduction on hue
+  ;;   side). Not pure geometric (triadic 120° etc. avoided as
+  ;;   number-prioritizing; see general note above).
+  ;; - Reference/anchor: bg h~200 as cool anchor (PCCS similar-hue
+  ;;   starting point; natural for sky reflection on stone). Warm cluster
+  ;;   0-60° tuned to actual reflected seasonal/light hues.
+  ;; - 8 hues total, respecting de-facto semantics (A above) as much as
+  ;;   possible while fitting the reflection image.
+  ;; Concretely this is "PCCS 類似色相配色 (cool dominant) + 中差/対照
+  ;; (limited warm seasonal accents) + なじみ原理 (natural rotenburo
+  ;; reflections) + de-facto semantic pattern", not a single 2-color
+  ;; hue-diff or pure geometric.
+  ;;
+  ;; Current concrete: s=55 (微増 from 50, after additional freq reductions
+  ;; for clutter/noise in minibuffer/org/dired while respecting de facto),
+  ;; l slightly below mono7 fg (49 dry / 57 wet) to keep gray-ramp
+  ;; dominance. Hues (see proposed refined below for naturalness):
+  ;; red 0, orange 30, yellow 55, green 130, cyan 202 (bg anchor),
+  ;; blue 242, purple 280, magenta 325.
+  ;; Additional reductions (within de facto scope):
+  ;; - minibuffer: orderless-match 4 faces now use cool cluster (cyan/blue/
+  ;;   purple/magenta) instead of warm-pop (orange etc.) to reduce "ガチャガチャ";
+  ;;   tooltip bg changed to blue (cooler).
+  ;; - org: table/habit-overdue/agenda-current-time/document-title/date
+  ;;   shifted to mono/low to reduce "うるさい" colored text (core todo/done
+  ;;   status kept as de facto).
+  ;; - dired: dired-perm-write explicitly mono4+underline (low-key for
+  ;;   permissions like lrwxr-xr-x, matching de facto patterns like solarized
+  ;;   gray+underline; file/buffer supplementary info less noisy).
+  ;; (Further s/l increase or frequency reduction possible after visual
+  ;; confirmation; see below.)
+
+  ;; Concretely, accents use s=55 (after minibuffer/org/dired freq reductions
+  ;; for clutter) + l slightly below fg (49 dry / 57 wet) base. This (plus
+  ;; heavy mono + :inherit) keeps the gray ramp dominant. The h assignments
+  ;; and face definitions apply the survey patterns + specific rotenburo
+  ;; reflection aesthetic. (s/l tweaks or frequency reduction possible later
+  ;; -- see levers below.)
 
   (custom-theme-set-faces
    'gensho
@@ -245,7 +351,7 @@ brightblack, ...)."
    `(warning ((,class (:foreground ,yellow))))
    `(success ((,class (:foreground ,green))))
    `(minibuffer-prompt ((,class (:foreground ,mono6))))
-   `(tooltip ((,class (:foreground ,mono7 :background ,orange))))
+   `(tooltip ((,class (:foreground ,mono7 :background ,blue))))
 
    ;; --- Modeline, header-line, tab-bar (UI chrome) ---
    `(mode-line ((,class (:foreground ,mono7 :background ,mono2))))
@@ -278,10 +384,10 @@ brightblack, ...)."
 
    ;; --- Completion & narrowing (modern UIs) ---
    `(vertico-current ((,class (:background ,mono1))))
-   `(orderless-match-face-0 ((,class (:weight unspecified :foreground ,orange))))
-   `(orderless-match-face-1 ((,class (:weight unspecified :foreground ,magenta))))
-   `(orderless-match-face-2 ((,class (:weight unspecified :foreground ,green))))
-   `(orderless-match-face-3 ((,class (:weight unspecified :foreground ,red))))
+   `(orderless-match-face-0 ((,class (:weight unspecified :foreground ,cyan))))
+   `(orderless-match-face-1 ((,class (:weight unspecified :foreground ,blue))))
+   `(orderless-match-face-2 ((,class (:weight unspecified :foreground ,purple))))
+   `(orderless-match-face-3 ((,class (:weight unspecified :foreground ,magenta))))
    `(consult-buffer ((,class (:foreground ,mono6))))
    `(consult-file ((,class (:foreground ,mono5))))
    `(corfu-default ((,class (:background ,mono1))))
@@ -290,6 +396,7 @@ brightblack, ...)."
 
    ;; --- Navigation & project (dired, bookmark, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
+   `(dired-perm-write ((,class (:foreground ,mono4 :underline t))))
    `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5 :background unspecified))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
    `(treemacs-root-face ((,class (:height unspecified))))
@@ -318,28 +425,28 @@ brightblack, ...)."
    `(org-agenda-dimmed-todo-face ((,class (:inherit font-lock-comment-face))))
    `(org-todo ((,class (:inverse-video t :foreground ,red :background ,mono0))))
    `(org-done ((,class (:inverse-video t :foreground ,green :background ,mono0))))
-   `(org-document-title ((,class (:inherit font-lock-constant-face))))
+   `(org-document-title ((,class (:foreground ,mono6 :weight bold))))
    `(org-column ((,class (:background ,mono2))))
    `(org-column-title ((,class (:inherit org-column))))
-   `(org-table ((,class (:foreground ,cyan))))
+   `(org-table ((,class (:foreground ,mono6))))
    `(org-tag ((,class (:weight unspecified))))
    `(org-archived ((,class (:inherit org-headline-done))))
    `(org-drawer ((,class (:inherit font-lock-comment-face))))
    `(org-special-keyword ((,class (:inherit font-lock-comment-face))))
-   `(org-date ((,class (:inherit font-lock-type-face))))
+   `(org-date ((,class (:foreground ,mono5))))
    `(org-time-grid ((,class (:inherit font-lock-comment-face))))
-   `(org-scheduled ((,class (:foreground ,green))))
+   `(org-scheduled ((,class (:foreground ,mono6))))
    `(org-scheduled-today ((,class (:foreground ,mono6))))
    `(org-scheduled-previously ((,class (:foreground ,mono5))))
    `(org-upcoming-deadline ((,class (:inherit org-scheduled-previously))))
    `(org-agenda-structure ((,class (:foreground ,mono6 :weight unspecified))))
-   `(org-agenda-current-time ((,class (:inherit font-lock-keyword-face))))
+   `(org-agenda-current-time ((,class (:foreground ,mono6 :weight bold))))
    `(org-agenda-date-today ((,class (:foreground ,mono6 :weight bold))))
    `(org-agenda-date-weekend ((,class (:foreground ,mono4))))
    `(org-agenda-clocking ((,class (:slant italic))))
-   `(org-habit-overdue-face ((,class (:background ,purple))))
+   `(org-habit-overdue-face ((,class (:background ,red))))
    `(org-roam-header-line ((,class (:inherit header-line))))
-   `(org-noter-notes-exist-face ((,class (:foreground ,green))))
+   `(org-noter-notes-exist-face ((,class (:foreground ,mono6))))
    `(org-noter-no-notes-exist-face ((,class (:foreground ,mono5))))
    `(deft-header-face ((,class (:inherit font-lock-builtin-face))))
    `(deft-title-face ((,class (:inherit font-lock-constant-face))))
@@ -347,7 +454,7 @@ brightblack, ...)."
    ;; --- Calendar / eww (other apps) ---
    `(calendar-today ((,class (:inherit font-lock-warning-face))))
    `(calendar-weekend-header ((,class (:inherit font-lock-type-face))))
-   `(eww-valid-certificate ((,class (:weight unspecified :foreground ,green))))))
+   `(eww-valid-certificate ((,class (:weight unspecified :foreground ,mono6))))))
 
 (defconst gensho--export-name-map
   '((mono0   . background)
