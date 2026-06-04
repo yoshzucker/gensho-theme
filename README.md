@@ -76,14 +76,14 @@ Example JSON (via `gensho-export-palette 'json 'wet`):
   "brightyellow": "#7e8182",
   "foreground": "#8f9394",
   "brightwhite": "#8f9394",
-  "red": "#fe5384",
-  "brightred": "#e67300",
-  "yellow": "#b78d00",
-  "green": "#4fa600",
-  "cyan": "#00a2b4",
-  "blue": "#0c96ff",
-  "brightmagenta": "#cd63ff",
-  "magenta": "#fe36de"
+  "red": "#d4647f",
+  "brightred": "#bb785a",
+  "yellow": "#a2835a",
+  "green": "#59965e",
+  "cyan": "#5f9196",
+  "blue": "#638cb4",
+  "brightmagenta": "#9a79c9",
+  "magenta": "#cb63ae"
 }
 ```
 
@@ -101,18 +101,18 @@ Example JSON (via `gensho-export-palette 'json 'wet`):
 | white               | mono5        | #6c7070         | #6a6d6d            |
 | brightyellow        | mono6        | #7e8182         | #747777            |
 | foreground, brightwhite | mono7   | #8f9394         | #7e8182            |
-| red                 | red          | #fe5384         | #fc006d            |
-| brightred           | orange       | #e67300         | #cb6400            |
-| yellow              | yellow       | #b78d00         | #967f00            |
-| green               | green        | #4fa600         | #449200            |
-| cyan                | cyan         | #00a2b4         | #008e9e            |
-| blue                | blue         | #0c96ff         | #0083e1            |
-| brightmagenta       | purple       | #cd63ff         | #c735ff            |
-| magenta             | magenta      | #fe36de         | #ea00cb            |
+| red                 | red          | #d4647f         | #bd4f6a            |
+| brightred           | orange       | #bb785a         | #a0664c            |
+| yellow              | yellow       | #a2835a         | #8a704c            |
+| green               | green        | #59965e         | #4b8050            |
+| cyan                | cyan         | #5f9196         | #507b80            |
+| blue                | blue         | #638cb4         | #54779a            |
+| brightmagenta       | purple       | #9a79c9         | #8960be            |
+| magenta             | magenta      | #cb63ae         | #ae5495            |
 
 Exact values are generated from HSLuv at load time. They are exposed via the HSL constants (`gensho-dry-hsl`, `gensho-wet-hsl`), the derived hex constants (`gensho-dry`, `gensho-wet`), and the accessors `gensho-palette` (internal semantic keys) / `gensho-export-palette` (ANSI/terminal names for external use).
 
-For terminal emulators that want a 16-color palette, use the values from `gensho-export-palette` (or run it and copy). The 16 ANSI slots are assigned from the 16 internal colors; some "bright" slots receive gray-ramp entries because the design uses one unified 8-step mono ramp + 8 saturated accent hues (see `gensho-export-palette` for the full mapping including aliases like brightcyan=background). 'hex-list gives the direct ordered list for slot 0-15.
+For terminal emulators that want a 16-color palette, use the values from `gensho-export-palette` (or run it and copy). The 16 ANSI slots are assigned from the 16 internal colors; some "bright" slots receive gray-ramp entries because the design uses one unified 8-step mono ramp + 8 accent hues (see `gensho-export-palette` for the full mapping including aliases like brightcyan=background). 'hex-list gives the direct ordered list for slot 0-15.
 
 ## License
 
