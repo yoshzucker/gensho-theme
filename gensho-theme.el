@@ -31,6 +31,10 @@
 ;;   (setq gensho-hsl-correction '(0.0 0.0 -1.5))  ; e.g. darken L a bit
 ;;   (gensho-apply-hsl-correction)                 ; then reloads theme if active
 ;; See the defcustom docstring for details and caveats (linear approx.).
+;;
+;; Magit faces are included and follow the theme's mono ramp + limited accents
+;; (with heavy use of :inherit) so that highlights/headers harmonize even in the
+;; non-standard "light" (dry) variant, which uses dark bg + light text.
 
 ;;; Code:
 
@@ -541,6 +545,67 @@ brightblack, ...)."
    `(org-noter-no-notes-exist-face ((,class (:foreground ,mono5))))
    `(deft-header-face ((,class (:inherit font-lock-builtin-face))))
    `(deft-title-face ((,class (:inherit font-lock-constant-face))))
+
+   ;; --- Magit (Git porcelain; rich derived mode) ---
+   ;; Follows design notes: "Org/Magit/Agenda and similar rich modes inherit the
+   ;; font-lock and mono decisions heavily; hues only for key status indicators".
+   ;; All specs use the variant-specific mono*/accent vars bound in the enclosing
+   ;; let*, so no explicit dark/light branching is needed here (unlike many
+   ;; magit deffaces).  This also fixes "floating" highlights/headers in gensho's
+   ;; non-standard "light" variant (dry: still dark bg + light text, unlike
+   ;; typical white-bg light themes).
+   ;; Prefer :inherit + mono* over direct colors for harmony and DRY.
+   ;; :extend t for full-width lines (Emacs 27+).
+   `(magit-section-highlight ((,class (:background ,mono1 :extend t))))
+   `(magit-section-heading ((,class (:inherit font-lock-keyword-face :weight bold))))
+   `(magit-section-secondary-heading ((,class (:weight bold))))
+   `(magit-section-heading-selection ((,class (:inherit magit-section-highlight :foreground ,orange :weight bold))))
+   `(magit-diff-file-heading ((,class (:weight bold))))
+   `(magit-diff-file-heading-highlight ((,class (:inherit magit-section-highlight :weight bold))))
+   `(magit-diff-file-heading-selection ((,class (:inherit magit-diff-file-heading-highlight :foreground ,orange))))
+   `(magit-diff-hunk-heading ((,class (:background ,mono2 :foreground ,mono6 :extend t))))
+   `(magit-diff-hunk-heading-highlight ((,class (:background ,mono3 :foreground ,mono7 :extend t))))
+   `(magit-diff-hunk-heading-selection ((,class (:inherit magit-diff-hunk-heading-highlight :foreground ,orange))))
+   `(magit-diff-conflict-heading ((,class (:inherit magit-diff-hunk-heading))))
+   `(magit-diff-revision-summary ((,class (:inherit magit-diff-hunk-heading))))
+   `(magit-diff-lines-heading ((,class (:background ,orange :foreground ,mono0 :extend t))))
+   `(magit-diff-context ((,class (:foreground ,mono5))))
+   `(magit-diff-context-highlight ((,class (:background ,mono1 :foreground ,mono6 :extend t))))
+   `(magit-diff-added ((,class (:background ,mono1 :foreground ,green :extend t))))
+   `(magit-diff-added-highlight ((,class (:background ,mono2 :foreground ,green :extend t))))
+   `(magit-diff-removed ((,class (:background ,mono1 :foreground ,red :extend t))))
+   `(magit-diff-removed-highlight ((,class (:background ,mono2 :foreground ,red :extend t))))
+   `(magit-diff-base ((,class (:background ,mono1 :foreground ,yellow :extend t))))
+   `(magit-diff-base-highlight ((,class (:background ,mono2 :foreground ,yellow :extend t))))
+   `(magit-diff-our ((,class (:inherit magit-diff-removed))))
+   `(magit-diff-their ((,class (:inherit magit-diff-added))))
+   `(magit-diff-our-highlight ((,class (:inherit magit-diff-removed-highlight))))
+   `(magit-diff-their-highlight ((,class (:inherit magit-diff-added-highlight))))
+   `(magit-diffstat-added ((,class (:foreground ,green))))
+   `(magit-diffstat-removed ((,class (:foreground ,red))))
+   `(magit-process-ok ((,class (:foreground ,green :weight bold))))
+   `(magit-process-ng ((,class (:foreground ,red :weight bold))))
+   `(magit-log-author ((,class (:foreground ,mono6))))
+   `(magit-log-date ((,class (:foreground ,mono5))))
+   `(magit-log-graph ((,class (:foreground ,mono4))))
+   `(magit-dimmed ((,class (:foreground ,mono4))))
+   `(magit-hash ((,class (:foreground ,mono4))))
+   `(magit-tag ((,class (:foreground ,yellow :weight bold))))
+   `(magit-branch-remote ((,class (:foreground ,green :weight bold))))
+   `(magit-branch-local ((,class (:foreground ,cyan :weight bold))))
+   `(magit-branch-current ((,class (:foreground ,blue :weight bold :box t))))
+   `(magit-branch-upstream ((,class (:slant italic))))
+   `(magit-head ((,class (:inherit magit-branch-local))))
+   `(magit-refname ((,class (:foreground ,mono5))))
+   `(magit-keyword ((,class (:inherit font-lock-string-face))))
+   `(magit-keyword-squash ((,class (:inherit font-lock-warning-face))))
+   `(magit-blame-highlight ((,class (:background ,mono2 :extend t))))
+   `(magit-blame-heading ((,class (:background ,mono2 :foreground ,mono6 :extend t
+                                    :box (:color ,mono2 :line-width 2)))))
+   `(magit-blame-summary ((,class (:foreground ,mono7))))
+   `(magit-blame-hash ((,class (:foreground ,mono4))))
+   `(magit-blame-name ((,class (:foreground ,mono6))))
+   `(magit-blame-date ((,class (:foreground ,mono5))))
 
    ;; --- Calendar / eww (other apps) ---
    `(calendar-today ((,class (:inherit font-lock-warning-face))))
