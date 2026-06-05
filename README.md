@@ -45,6 +45,8 @@ After loading the package (or the theme), the palette is available in two ways:
   Returns the raw alist of 16 entries using the theme's internal semantic keys:
   `mono0`..`mono7` (perceptual gray ramp; `mono0` is the background, `mono7` the
   foreground for the variant) plus the 8 accent hues `red orange yellow green cyan
+  blue purple magenta`; additionally `dim0` and `dim1` (weak dim levels for
+  non-selected support in auto-dim-other-buffers-mode / solaire-mode)
   blue purple magenta`.
 
 - For external tools (Alacritty, kitty, WezTerm, ghostty, dircolors, terminal OSC
@@ -112,7 +114,7 @@ Example JSON (via `gensho-export-palette 'json 'wet`):
 
 Exact values are generated from HSLuv at load time (with `gensho-hsl-correction` deltas applied if set). They are exposed via the HSL constants (`gensho-dry-hsl`, `gensho-wet-hsl`), the derived hex variables (`gensho-dry`, `gensho-wet`), and the accessors `gensho-palette` (internal semantic keys) / `gensho-export-palette` (ANSI/terminal names for external use).
 
-For terminal emulators that want a 16-color palette, use the values from `gensho-export-palette` (or run it and copy). The 16 ANSI slots are assigned from the 16 internal colors; some "bright" slots receive gray-ramp entries because the design uses one unified 8-step mono ramp + 8 accent hues (see `gensho-export-palette` for the full mapping including aliases like brightcyan=background). 'hex-list gives the direct ordered list for slot 0-15.
+For terminal emulators that want a 16-color palette, use the values from `gensho-export-palette` (or run it and copy). The 16 ANSI slots are assigned from the 16 core internal colors (8-step mono ramp + 8 accent hues); some "bright" slots receive gray-ramp entries. dim0/dim1 are additional dedicated dim levels (for non-selected support) and are not part of the 16-color export (see `gensho-export-palette` for the full mapping including aliases like brightcyan=background). 'hex-list gives the direct ordered list for slot 0-15.
 
 ## UI chrome, tab bar, and slate texture
 
@@ -195,11 +197,13 @@ color. Key choices for "slate feel":
   - `solaire-mode` (for "unreal" buffers such as sidebars/popups)
   - `auto-dim-other-buffers-mode` (for non-selected windows)
 
-  Their dim faces are set to `mono1` (the standard first auxiliary step).
-  No new colors are invented. The classic tool for a global effect remains
-  those modes; our ramp + face specs make them work well with the 玄昌石
-  palette while preserving the full de-facto role assignment for the 8 levels
-  on main content.
+  Their dim faces are set to `dim0` (a dedicated level between mono0 and the
+  standard auxiliary step at mono1). This allows a weaker "ほんの少し" shift
+  for non-selected areas while keeping the main 8-step mono ramp (and its
+  de-facto subtle roles at mono1 etc. on main content) unchanged. dim1 is
+  also available. No colors outside the published structure are invented.
+  The classic tool for a global effect remains those modes; our ramp + face
+  specs make them work well with the 玄昌石 palette.
 - **Child frames**: Popups (corfu, transient, etc.) get consistent `mono2`
   framing via `child-frame-border`.
 

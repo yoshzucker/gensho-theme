@@ -60,6 +60,8 @@
 ;; dired-perm-write to mono4+underline) keep core semantics intact.
 (defconst gensho-dry-hsl
   '((mono0   . (200   5  26))
+    (dim0    . (200   5  27))   ; dedicated dim level for non-selected (weaker than mono1 aux)
+    (dim1    . (200   5  28.5))
     (mono1   . (200   5  30))
     (mono2   . (200   5  34))
     (mono3   . (200   5  38))
@@ -78,6 +80,8 @@
 
 (defconst gensho-wet-hsl
   '((mono0   . (200   5  12))
+    (dim0    . (200   5  14))   ; dedicated dim level for non-selected (weaker than mono1 aux)
+    (dim1    . (200   5  16))
     (mono1   . (200   5  19))
     (mono2   . (200   5  26))
     (mono3   . (200   5  33))
@@ -164,14 +168,21 @@ Computed from `gensho-wet-hsl' + `gensho-hsl-correction'.")
 VARIANT is `wet' or `dry' (defaults from `frame-background-mode').
 
 The alist uses the theme's internal semantic palette keys:
-  mono0..mono7  (perceptual gray ramp; mono0 is background, mono7 foreground
-                 for the chosen variant)
+  mono0..mono7  (perceptual gray ramp for main content; mono0 is background,
+                 mono7 foreground for the chosen variant; de-facto roles:
+                 mono1 for subtle selection/highlight on main, etc.)
+  dim0, dim1    (dedicated dim levels between mono0 and mono1, for the base
+                 background of non-selected/unreal areas when using the
+                 supported modes auto-dim-other-buffers-mode or solaire-mode.
+                 Allows weaker dim than the standard aux step at mono1 while
+                 preserving the 8-step mono semantics for content.)
   red orange yellow green cyan blue purple magenta  (accent hues)
 
 The returned colors respect `gensho-hsl-correction' (if non-zero).
 For external tools / terminal emulators prefer `gensho-export-palette',
 which maps to conventional ANSI/terminal color names (background, black,
-brightblack, ...)."
+brightblack, ...). The dim* levels are internal to Emacs UI and not
+included in the 16-color export."
   (let ((v (or variant
                (if (eq frame-background-mode 'light) 'dry 'wet))))
     (if (eq v 'dry) gensho-dry gensho-wet)))
@@ -186,6 +197,8 @@ brightblack, ...)."
        (mono5  (alist-get 'mono5 colors))
        (mono6  (alist-get 'mono6 colors))
        (mono7  (alist-get 'mono7 colors))
+       (dim0   (alist-get 'dim0 colors))
+       (dim1   (alist-get 'dim1 colors))
        (red    (alist-get 'red colors))
        (orange (alist-get 'orange colors))
        (yellow (alist-get 'yellow colors))
@@ -223,13 +236,13 @@ brightblack, ...)."
   ;;                       high-attention pop elements that sit on colored
   ;;                       backgrounds.
   ;;     step ~1 (next):   subtle backgrounds for selection, current item,
-  ;;                       highlights, matching regions, etc. This is also the
-  ;;                       tone we assign to the dim / non-selected / unreal
-  ;;                       faces for the supported de-facto modes (solaire-mode
-  ;;                       and auto-dim-other-buffers-mode). Using the standard
-  ;;                       first aux step for them keeps full compatibility with
-  ;;                       the survey-derived 8-level semantics while giving
-  ;;                       users of those modes the desired auxiliary shift.
+  ;;                       highlights, matching regions, etc. (the standard
+  ;;                       de-facto aux step on main content).
+  ;;                       Dedicated dim levels (dim0/dim1, between mono0 and
+  ;;                       this step) are provided for the supported modes'
+  ;;                       non-selected/unreal faces, so dim can be weaker than
+  ;;                       the main aux while preserving the 8-step semantics
+  ;;                       for content.
   ;;     step ~2-3:        alt / medium subtle (active chrome bg, some
   ;;                       highlights).
   ;;     step ~4 (mid-low): faint / secondary (shadow, doc-face, low-
@@ -265,14 +278,15 @@ brightblack, ...)."
   ;; We keep normal editing buffers on the main mono0 plane. The main de-facto
   ;; signal for non-active windows is `mode-line-inactive` (set to mono1 here,
   ;; providing a gentle auxiliary-layer treatment at the chrome level).
-  ;; For users who want a global subtle mono1 shift for non-selected windows
+  ;; For users who want a global subtle shift for non-selected windows
   ;; or unreal buffers, we provide explicit face support for the two de-facto
   ;; modes that can use exact palette colors without inventing new ones:
   ;; solaire-mode (for "unreal" buffers) and auto-dim-other-buffers-mode (for
-  ;; non-selected windows). Their dim faces are set to mono1 (the standard
-  ;; first auxiliary step), so enabling the mode gives the aux tone while
-  ;; preserving the full de-facto role assignment for the 8 levels on main
-  ;; content.
+  ;; non-selected windows). Their dim faces are set to dim0 (a dedicated level
+  ;; between mono0 and the standard aux mono1), so enabling the mode gives a
+  ;; weaker aux tone while preserving the full de-facto role assignment for
+  ;; the main 8 levels (subtle at mono1 etc.) on content. dim1 is also
+  ;; available for customization.
   ;;
   ;; Selected tab and current content deliberately share mono0 so the working
   ;; surface feels continuous, while chrome elements (bars, header) use higher
@@ -438,16 +452,17 @@ brightblack, ...)."
    ;; non-selected windows). These are the modes that can consume exact
    ;; palette colors without inventing new ones.
    ;;
-   ;; We set their dim faces to mono1 (the standard first auxiliary / subtle
-   ;; step in the ramp). This allows users who enable the modes to get a
-   ;; non-selected / aux tone using only the published 8-mono levels.
-   ;; Inside dimmed areas the next step (mono2) provides contrast for
-   ;; highlights (matching what we use for subtle on main mono0).
-   `(solaire-default-face ((,class (:background ,mono1))))
-   `(solaire-hl-line-face ((,class (:background ,mono2))))
-   `(solaire-region-face ((,class (:background ,mono2 :extend t))))
-   `(auto-dim-other-buffers ((,class (:background ,mono1))))
-   `(auto-dim-other-buffers-hide ((,class (:foreground ,mono1 :background ,mono1))))
+   ;; We use dedicated dim levels (dim0/dim1, positioned between mono0 and
+   ;; the standard aux mono1) for their base dim faces. This keeps the main
+   ;; 8-step mono ramp (and its de-facto roles at mono1 for subtle selection
+   ;; etc. on main content) unchanged, while allowing a weaker "ほんの少し"
+   ;; dim for non-selected areas. Inside dimmed areas, highlights use the
+   ;; main subtle step (mono1) or mono2 for contrast.
+   `(solaire-default-face ((,class (:background ,dim0))))
+   `(solaire-hl-line-face ((,class (:background ,mono1))))
+   `(solaire-region-face ((,class (:background ,mono1 :extend t))))
+   `(auto-dim-other-buffers ((,class (:background ,dim0))))
+   `(auto-dim-other-buffers-hide ((,class (:foreground ,dim0 :background ,dim0))))
 
    ;; --- Core primitives ---
    `(default ((,class (:foreground ,mono7 :background ,mono0))))
@@ -471,10 +486,11 @@ brightblack, ...)."
    ;; window-divider-mode is enabled (see the Gutter section below).
    ;;
    ;; Note on treemacs mono1: The step from main mono0 to mono1 is the standard
-   ;; first auxiliary step. If it feels too strong compared to the main bg,
-   ;; you can override `treemacs-window-background-face` to mono0 in your
-   ;; personal config; the panel character will come from its distinct content,
-   ;; hl-line, and the clean divider treatment.
+   ;; first auxiliary step (panels use this; the even weaker dim0/dim1 are for
+   ;; the modes' non-selected content). If it feels too strong compared to the
+   ;; main bg, you can override `treemacs-window-background-face` to mono0 in
+   ;; your personal config; the panel character will come from its distinct
+   ;; content, hl-line, and the clean divider treatment.
    `(vertical-border ((,class (:foreground ,mono0))))
    `(region ((,class (:background ,mono1 :extend t))))
    `(highlight ((,class (:background ,mono1))))
@@ -555,14 +571,11 @@ brightblack, ...)."
    ;; Enable with `(window-divider-mode 1)` + the width variables.
    ;;
    ;; Note on auxiliary panel contrast (treemacs etc.):
-   ;; The step mono0 → mono1 is the standard first auxiliary step in the ramp.
-   ;; If the difference feels noticeably large compared to main mono0, that is
-   ;; a common observation. In that case, many users prefer to keep explicit
-   ;; sidebars on the same mono0 as main content; the panel character then comes
-   ;; from the distinct content (tree vs code), hl-line, icons, window shape,
-   ;; and the clean (mono0) divider treatment. You can easily override
-   ;; `treemacs-window-background-face` to mono0 in your own config if you
-   ;; want less contrast while keeping the overall slate aesthetic.
+   ;; The step mono0 → mono1 is the standard first auxiliary step in the (main)
+   ;; ramp. Dedicated dim levels (dim0/dim1) exist below it for the modes.
+   ;; If the mono1 panel step feels too strong vs main mono0, override the
+   ;; panel face to mono0 (content + hl-line + divider still define it --
+   ;; common de-facto).
    ;;
    ;; Non-focused windows in general:
    ;; Normal buffers stay on the main mono0 plane. The primary de-facto way
@@ -571,10 +584,9 @@ brightblack, ...)."
    ;; auxiliary-layer treatment at the chrome level without affecting editing
    ;; areas). A global subtle shift for every non-selected window is exactly
    ;; what `solaire-mode` and `auto-dim-other-buffers-mode` are designed for.
-   ;; Because we want to stay close to de-facto practices, the theme provides
-   ;; the necessary face specs (using the standard mono1 aux step) so that
-   ;; enabling either mode gives the aux tone. If you like the effect, using
-   ;; one of those modes is the recommended route (our controlled mono ramp
+   ;; The theme provides face specs using dedicated dim0 (weaker than the
+   ;; standard mono1 aux) for those modes. If you like the effect, using one
+   ;; of those modes is the recommended route (our controlled mono ramp
    ;; works well with them).
    ;;
    ;; mode-line-inactive at mono1 already provides a gentle auxiliary feel
