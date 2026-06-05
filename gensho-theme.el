@@ -242,6 +242,44 @@ brightblack, ...)."
   ;; - The overall derived principle: the gray ramp layers supply the primary
   ;;   visual rhythm; color is used as accent on top of this foundation.
 
+  ;; Slate texture extension (gensho-specific application of the above):
+  ;; To evoke 玄昌石 (layered, quiet stone) despite Emacs' sparse chrome,
+  ;; we deliberately map UI structural elements to adjacent ramp steps.
+  ;; The main content plane is at mono0. Explicit auxiliary panels (such as
+  ;; the treemacs sidebar) can be given a different step (mono1) via their
+  ;; dedicated faces for a subtle layered "stone slab" effect.
+  ;;
+  ;; For the divider between such a panel and the main content, we set it to
+  ;; the main content color (mono0). This produces a clean transition without
+  ;; a visible seam line that would fight the plane expression — the
+  ;; distinction comes from the tone difference (where present) and the
+  ;; content itself. This choice was confirmed to give good slate feel after
+  ;; direct testing.
+  ;;
+  ;; The small perceptual steps in the ramp are intentional for quiet texture;
+  ;; they provide visible but not jarring layer separation. If an auxiliary
+  ;; panel at mono1 feels noticeably different from main mono0, that is
+  ;; expected with the current step size. In such cases it is common (and
+  ;; de-facto friendly) to keep the sidebar at the same mono0 as main content
+  ;; and let content structure + the clean divider treatment provide the
+  ;; panel character.
+  ;;
+  ;; We keep normal editing buffers on the main mono0 plane. The main de-facto
+  ;; signal for non-active windows is `mode-line-inactive` (set to mono1 here,
+  ;; providing a gentle auxiliary-layer treatment at the chrome level).
+  ;; A global subtle shift for every non-selected window is exactly what
+  ;; `solaire-mode` is designed for. Because we prefer to stay close to
+  ;; de-facto practices and avoid big contrast or external dependencies, the
+  ;; theme itself does not force such a shift on regular buffers.
+  ;;
+  ;; Selected tab and current content deliberately share mono0 so the working
+  ;; surface feels continuous, while chrome elements (bars, header) use higher
+  ;; steps for layered separation. This is ramp layering as the primary
+  ;; decoration, tuned for the cool low-sat stone image.
+  ;;
+  ;; See the "Gutter, dividers..." section and README for the current
+  ;; practical choices and usage notes.
+
   ;; Accent colors (hues)
   ;;
   ;; A. Observed convergence on semantic mappings
@@ -400,7 +438,26 @@ brightblack, ...)."
    `(fringe ((,class (:background ,mono0))))
    `(border ((,class (:background ,mono0))))
    `(internal-border ((,class (:background ,mono0))))
-   `(vertical-border ((,class (:foreground ,mono2))))
+   ;; Divider between windows. To achieve a clean slate feel (as preferred after
+   ;; testing), we set the divider to the main content color (mono0). This
+   ;; removes any visible seam line artifact between a differentiated side panel
+   ;; (e.g. treemacs at mono1) and the main editor (mono0). The distinction
+   ;; between areas is then expressed purely by the bg tone difference (where
+   ;; used) + the content itself (tree structure vs code, icons, etc.) and
+   ;; window geometry.
+   ;;
+   ;; This is a common de-facto approach for quiet, layered "stone" looks: avoid
+   ;; a contrasting border line that fights the plane expression. Regular
+   ;; content-to-content splits can still get subtle separation when
+   ;; window-divider-mode is enabled (see the Gutter section below).
+   ;;
+   ;; Note on treemacs mono1: The step from main mono0 to mono1 is noticeable
+   ;; (by design of the perceptual ramp for visible but quiet layers). If it
+   ;; feels too strong compared to the main bg, you can override
+   ;; `treemacs-window-background-face` to mono0 in your personal config; the
+   ;; panel character will come from its distinct content, hl-line, and the
+   ;; clean divider treatment.
+   `(vertical-border ((,class (:foreground ,mono0))))
    `(region ((,class (:background ,mono1 :extend t))))
    `(highlight ((,class (:background ,mono1))))
    `(shadow ((,class (:foreground ,mono4))))
@@ -414,14 +471,97 @@ brightblack, ...)."
    `(minibuffer-prompt ((,class (:foreground ,mono6))))
    `(tooltip ((,class (:foreground ,mono7 :background ,blue))))
 
-   ;; --- Modeline, header-line, tab-bar (UI chrome) ---
+   ;; --- Modeline, header-line, tab-bar, tab-line (UI chrome) ---
+   ;; Slate texture strategy: We differentiate "chrome layers" (bars, side
+   ;; panels) from the main "content plane" using adjacent steps on the mono
+   ;; ramp. This is the primary way to create visual depth and "stone slab"
+   ;; feel in Emacs, which lacks heavy decorative primitives (borders, shadows,
+   ;; titlebar gradients) available in other editors.
+   ;; - tab-bar bg at mono2 (toolbar/frame chrome layer).
+   ;; - Selected tab bg = mono0 (flushes with buffer default bg), so the active
+   ;;   view surface is continuous from the tab "lid" down into the content.
+   ;;   This creates the recessed/chiseled selection + unified chrome slab the
+   ;;   user requested, evoking layered 玄昌石.
+   ;; - Inactive tabs sit on the bar (mono1) with dimmer fg for clear but quiet
+   ;;   distinction.
+   ;; - tab-line (per-window) follows a similar but slightly more content-adjacent
+   ;;   layering (bar at mono1) since it lives closer to buffer content.
+   ;; - mode-line already uses mono2 (active chrome) and mono1 (inactive),
+   ;;   harmonizing with the new tab-bar top bar.
+   ;; See also the extended Mono ramp notes below.
    `(mode-line ((,class (:foreground ,mono7 :background ,mono2))))
    `(mode-line-inactive ((,class (:foreground ,mono6 :background ,mono1))))
    `(mode-line-buffer-id ((,class (:weight unspecified))))
    `(header-line ((,class (:foreground ,mono6 :background ,mono3 :weight unspecified))))
-   `(tab-bar ((,class (:foreground ,mono7 :background ,mono0))))
-   `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono2 :box unspecified))))
+   `(tab-bar ((,class (:foreground ,mono7 :background ,mono2))))
+   `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono0 :box unspecified))))
    `(tab-bar-tab-inactive ((,class (:foreground ,mono6 :background ,mono1))))
+   `(tab-bar-tab-group-current ((,class (:inherit tab-bar-tab :weight bold))))
+   `(tab-bar-tab-group-inactive ((,class (:inherit tab-bar-tab-inactive))))
+   ;; tab-line (Emacs 28+ per-window buffer tabs)
+   `(tab-line ((,class (:foreground ,mono7 :background ,mono1))))
+   `(tab-line-tab ((,class (:foreground ,mono6 :background ,mono1))))
+   `(tab-line-tab-current ((,class (:foreground ,mono7 :background ,mono0 :box unspecified))))
+   `(tab-line-tab-inactive ((,class (:foreground ,mono5 :background ,mono1))))
+   `(tab-line-tab-modified ((,class (:inherit tab-line-tab-current :weight bold))))
+
+   ;; --- Gutter, dividers, borders (additional vertical/horizontal layering) ---
+   ;; These provide extra "slab" and "grout" elements with almost zero added
+   ;; decoration primitives, purely via mono ramp assignment.
+   ;; Gutter (line numbers) acts as a vertical stone pillar on the left.
+   ;;
+   ;; Divider choice for clean slate feel (updated per testing):
+   ;; Setting the divider to the main content color (mono0) produces the nicest
+   ;; layered stone look without a visible seam line artifact. When using a
+   ;; differentiated side panel (e.g. treemacs at mono1), the transition to the
+   ;; main mono0 editor is seamless — the panel stands out through its tone
+   ;; and content, not through an extra contrasting border.
+   ;;
+   ;; This is a common de-facto approach for quiet, modern slate/dark themes:
+   ;; let the face (plane) tone difference and the content itself define areas,
+   ;; rather than relying on a bright divider line that can fight the "面の
+   ;; スレート" expression.
+   ;;
+   ;; For regular content-to-content splits, enabling `window-divider-mode`
+   ;; can still give a very gentle separation using close tones in the ramp.
+   ;; Enable with `(window-divider-mode 1)` + the width variables.
+   ;;
+   ;; Note on auxiliary panel contrast (treemacs etc.):
+   ;; The step mono0 → mono1 is the smallest perceptual step we have (by design
+   ;; of the ramp for visible but quiet layers). If the difference feels
+   ;; noticeably large compared to main mono0, that is a common observation.
+   ;; In that case, many users prefer to keep explicit sidebars on the same
+   ;; mono0 as main content; the panel character then comes from the distinct
+   ;; content (tree vs code), hl-line, icons, window shape, and the clean
+   ;; (mono0) divider treatment. You can easily override
+   ;; `treemacs-window-background-face` to mono0 in your own config if you
+   ;; want less contrast while keeping the overall slate aesthetic.
+   ;;
+   ;; Non-focused windows in general:
+   ;; Normal buffers stay on the main mono0 plane. The primary de-facto way
+   ;; to signal "this window is not the active one" is through
+   ;; `mode-line-inactive` (already set to mono1 here, which sits as a subtle
+   ;; auxiliary-layer treatment at the chrome level without affecting editing
+   ;; areas). A global "slightly towards mono1 for every non-selected window"
+   ;; is precisely the use case `solaire-mode` was created for. Because we
+   ;; want to stay close to de-facto practices and avoid big contrast or
+   ;; external dependencies, the theme itself does not force such a shift on
+   ;; normal buffers. If you like the solaire-like effect, using solaire-mode
+   ;; is the recommended de-facto route (our controlled mono ramp works well
+   ;; with it).
+   ;;
+   ;; mode-line-inactive at mono1 already provides a gentle auxiliary feel
+   ;; that is consistent with how we treat explicit panels.
+   ;;
+   ;; child-frame-border keeps popups framed consistently with other chrome.
+   `(line-number ((,class (:foreground ,mono4 :background ,mono0))))
+   `(line-number-current-line ((,class (:foreground ,mono6 :background ,mono1 :weight bold))))
+   `(line-number-major-tick ((,class (:foreground ,mono3 :background ,mono0 :weight bold))))
+   `(line-number-minor-tick ((,class (:foreground ,mono4 :background ,mono0))))
+   `(window-divider ((,class (:foreground ,mono0))))
+   `(window-divider-first-pixel ((,class (:foreground ,mono1))))
+   `(window-divider-last-pixel ((,class (:foreground ,mono0))))
+   `(child-frame-border ((,class (:background ,mono2))))
 
    ;; --- Font-lock (syntax primitives; bases for inherits) ---
    `(font-lock-comment-face ((,class (:foreground ,mono5 :slant italic))))
@@ -461,6 +601,42 @@ brightblack, ...)."
    `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5 :background unspecified))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
    `(treemacs-root-face ((,class (:height unspecified))))
+   ;; Slate sidebar: give the whole treemacs window a distinct layer (mono1)
+   ;; so it reads as a side stone panel next to the main content plane (mono0).
+   ;; With `vertical-border` at mono0, the transition is clean (no extra seam
+   ;; line). The panel stands out through its tone + distinct content.
+   ;; If the mono1 step feels strong vs main mono0, you can override this face
+   ;; to mono0 in your config; distinction will come from content, hl-line,
+   ;; and the clean divider.
+   ;; hl-line uses the next step (mono2) for subtle selection without popping.
+   ;; Directory uses the type face (cyan, low-pop structure per design notes);
+   ;; files stay close to default/mono6 to keep the gray foundation dominant.
+   ;; Git faces use semantic accents sparingly (matching dired/magit philosophy).
+   `(treemacs-window-background-face ((,class (:background ,mono1))))
+   `(treemacs-hl-line-face ((,class (:background ,mono2))))
+   `(treemacs-directory-face ((,class (:inherit font-lock-type-face))))
+   `(treemacs-directory-collapsed-face ((,class (:inherit treemacs-directory-face))))
+   `(treemacs-file-face ((,class (:foreground ,mono6))))
+   `(treemacs-git-added-face ((,class (:foreground ,green))))
+   `(treemacs-git-modified-face ((,class (:foreground ,yellow))))
+   `(treemacs-git-untracked-face ((,class (:foreground ,cyan))))
+   `(treemacs-git-ignored-face ((,class (:inherit shadow))))
+   `(treemacs-git-conflict-face ((,class (:foreground ,red))))
+
+   ;; dirvish (dired-based modern file manager). We style its custom hl/inactive
+   ;; faces to follow the mono ramp. For dirvish-side (sidebar usage) the main
+   ;; directory listing background remains the normal content plane (mono0 /
+   ;; `default') because dirvish re-uses dired buffers and does not expose a
+   ;; dedicated window-background-face like treemacs. Distinction for the pane
+   ;; comes from header-line (mono3), our hl-line faces, window dividers (which
+   ;; blend to panel tone when next to a mono1 area), and optional multi-pane
+   ;; layout. This matches the design constraints of the package. See README
+   ;; for a user hook example if you want mono1 for the whole side pane.
+   ;; Recommended dired-native alternative to treemacs (for users who prefer
+   ;; dired-native navigation with built-in preview).
+   `(dirvish-hl-line ((,class (:background ,mono2 :extend t))))
+   `(dirvish-hl-line-inactive ((,class (:background ,mono1 :extend t))))
+   `(dirvish-inactive ((,class (:inherit shadow))))
 
    ;; --- Marginalia (completion annotations; tone down lively file attrs) ---
    ;; Follows the mono usage (supplementary file info -> shadow/mono4 or

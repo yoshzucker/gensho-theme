@@ -114,6 +114,101 @@ Exact values are generated from HSLuv at load time (with `gensho-hsl-correction`
 
 For terminal emulators that want a 16-color palette, use the values from `gensho-export-palette` (or run it and copy). The 16 ANSI slots are assigned from the 16 internal colors; some "bright" slots receive gray-ramp entries because the design uses one unified 8-step mono ramp + 8 accent hues (see `gensho-export-palette` for the full mapping including aliases like brightcyan=background). 'hex-list gives the direct ordered list for slot 0-15.
 
+## UI chrome, tab bar, and slate texture
+
+Gensho emphasizes a quiet, layered stone aesthetic ("玄昌石") primarily through
+careful assignment of the mono ramp to UI elements rather than heavy borders or
+color. Key choices for "slate feel":
+
+- **tab-bar**: The bar background uses a mid chrome layer (`mono2`). The active
+  tab background matches the main editor background (`mono0`), so the selected
+  view surface is continuous from the tab down into the buffer content. Inactive
+  tabs use `mono1` on the bar. This produces a clean recessed selection + framing
+  slab without extra boxes. Enable with `(tab-bar-mode 1)`.
+- **tab-line** (per-window buffer tabs): Similar layering, slightly closer to
+  content (`tab-line` at `mono1`, current at `mono0`).
+- **Side panes**:
+  - treemacs: The entire sidebar window gets `mono1` background
+    (`treemacs-window-background-face`) so it reads as a distinct side panel.
+    Directories inherit the type face (cyan); other elements stay low-key in the
+    mono ramp. Git states use sparse semantic colors.
+    With `vertical-border` at main mono0, the transition from the panel to the
+    main editor is clean (no extra seam line), so the distinction comes from
+    the tone + content. If the mono1 step from main mono0 feels strong, you can
+    override the face to mono0 in your config; the panel feel will still come
+    from its distinct content and the clean divider treatment.
+  - dirvish (recommended dired-native alternative): `dirvish-side` gives a
+    familiar dired-based pane you can drill into directories. We theme its
+    hl-line and inactive faces to the ramp. Dirvish's default layouts often show
+    parent + current + preview panes; the multiple vertical divisions + dividers
+    naturally add visual layers that enhance the slate texture. Many users
+    replace neotree/treemacs with it for tighter integration.
+    **Note on background**: Dirvish re-uses ordinary dired buffers (no dedicated
+    window-background face like treemacs), so the main file listing area uses
+    the normal content background (`mono0`). The "side panel" feel comes from
+    the header-line (already at `mono3`), hl-line (`mono2` when focused), the
+    physical side window + enhanced dividers, and optional parent/preview
+    columns. This is intentional given the faces dirvish exposes. If you
+    strongly prefer the entire `dirvish-side` pane to have a distinct `mono1`
+    background (matching the treemacs treatment), add something like this to
+    your personal config:
+
+    ```elisp
+    (with-eval-after-load 'dirvish
+      (add-hook 'dirvish-mode-hook
+                (lambda ()
+                  (when-let* ((dv (dirvish-curr))
+                              ((eq (ignore-errors (dv-type dv)) 'side)))
+                    (face-remap-add-relative
+                     'default `(:background ,(alist-get 'mono1 (gensho-palette))))))))
+    ```
+- **Dividers & gutters**: `vertical-border` is set to the main content color
+  (mono0). This was confirmed after direct testing to give the cleanest slate
+  feel: when a side panel uses a different tone (e.g. treemacs at mono1), the
+  transition to the main editor (mono0) has no visible seam line artifact.
+  The distinction between areas comes from the tone difference (where used)
+  + the content itself and window geometry — a common de-facto pattern for
+  quiet layered looks.
+
+  `window-divider*` (when you enable `window-divider-mode`) can still provide
+  very gentle separation for regular content-to-content splits using close
+  tones in the ramp. Enable with `(window-divider-mode 1)` + width vars.
+
+  Line numbers get a quiet gutter slab.
+
+  Note on contrast: The mono0 → mono1 step is the smallest perceptual step
+  in the ramp (intentional for visible but quiet layers). If a sidebar at
+  mono1 feels noticeably different from main mono0, that is expected. In that
+  case it is common to keep explicit sidebars on the same mono0 as main
+  content; the panel character then comes from content, hl-line, and the
+  clean divider treatment. You can override `treemacs-window-background-face`
+  to mono0 in your config if you prefer less contrast.
+
+  The small L steps in the mono ramp are sufficient for subtle plane
+  distinction while preserving the quiet stone aesthetic. We stay close to
+  de-facto practices and do not force global bg shifts for every non-selected
+  window (the classic tool for that is `solaire-mode`, which works well with
+  this theme's controlled ramp).
+- **Child frames**: Popups (corfu, transient, etc.) get consistent `mono2`
+  framing via `child-frame-border`.
+
+These are all designed so the 8-step perceptual ramp supplies the rhythm and
+"stone" depth. See the design notes inside `gensho-theme.el` (the "Mono ramp"
+and "Slate texture extension" comments) for the survey-derived principles.
+
+Example to explore the effect:
+```elisp
+(tab-bar-mode 1)
+(global-tab-line-mode 1)
+(global-display-line-numbers-mode 1)
+(window-divider-mode 1)
+(setq window-divider-default-right-width 3)
+;; then open treemacs or (dirvish-side), split windows, create tabs
+```
+
+The ramp assignments remain harmonious in both the deep "wet" and lighter
+"washed-stone" "dry" variants.
+
 ## License
 
 MIT License. See `LICENSE`.
