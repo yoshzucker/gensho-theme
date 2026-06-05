@@ -26,6 +26,11 @@
 ;; Programmatic palette access:
 ;;   (gensho-palette)        ; internal semantic keys (mono0-7 + 8 hues)
 ;;   (gensho-export-palette 'json 'wet)  ; ANSI/terminal names for external tools
+;;
+;; Display compensation:
+;;   (setq gensho-hsl-correction '(0.0 0.0 -1.5))  ; e.g. darken L a bit
+;;   (gensho-apply-hsl-correction)                 ; then reloads theme if active
+;; See the defcustom docstring for details and caveats (linear approx.).
 
 ;;; Code:
 
@@ -85,18 +90,69 @@
     (purple  . (280  55  57))
     (magenta . (325  55  57))))
 
+(defcustom gensho-hsl-correction '(0.0 0.0 0.0)
+  "HSLuv deltas (h s l) added to every base color before hex conversion.
+
+Intended to compensate for display characteristic differences (e.g.
+perceived darkness of the wet variant mono0 background on some
+setups vs. others).  The correction is applied uniformly and
+linearly in HSLuv space to all 16 palette entries (mono0-7 and the
+8 hues) for both wet and dry variants.
+
+Because the relationship between HSLuv values and actual display
+response may not be perfectly linear, a single set of deltas is a
+first-order approximation.  Small L adjustments are often most
+effective for background lightness; large corrections can affect
+ramp spacing or accent distinguishability.  Always verify visually
+after changing, and prefer the smallest effective values.
+
+The canonical design values remain in `gensho-dry-hsl' and
+`gensho-wet-hsl'\; this option only affects derived hex palettes.
+
+Set the value before loading the theme, or call
+`gensho-apply-hsl-correction' afterwards (and reload the theme if
+necessary)."
+  :type '(list float float float)
+  :group 'gensho-theme
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when (fboundp 'gensho--recompute-derived-palettes)
+           (gensho--recompute-derived-palettes))))
+
+;; HSL correction helpers (after defcustom so the variable is known).
+(defun gensho--correct-hsl (hsl)
+  "Add `gensho-hsl-correction' deltas to HSL (h s l) list.
+Uses cl-destructuring-bind for clarity (cl-lib is already required
+and cl-loop is used elsewhere with the cl- prefix)."
+  (cl-destructuring-bind (h s l) hsl
+    (cl-destructuring-bind (dh ds dl) gensho-hsl-correction
+      (list (mod (+ h dh) 360.0)
+            (max 0.0 (min 100.0 (+ s ds)))
+            (max 0.0 (min 100.0 (+ l dl)))))))
+
 (defun gensho--hex-palette (hsl-palette)
-  "Convert HSL alist to hex alist using `hsluv-hsluv-to-hex'."
+  "Convert HSL alist to hex alist using `hsluv-hsluv-to-hex'.
+Respects the current value of `gensho-hsl-correction'."
   (cl-loop for entry in hsl-palette
            for name = (car entry)
-           for hsl = (cdr entry)
+           for hsl = (gensho--correct-hsl (cdr entry))
            collect `(,name . ,(hsluv-hsluv-to-hex hsl))))
 
-(defconst gensho-dry
-  (gensho--hex-palette gensho-dry-hsl))
+(defvar gensho-dry nil
+  "Derived hex palette for the dry (light/washed-stone) variant.
+Computed from `gensho-dry-hsl' + `gensho-hsl-correction'.")
 
-(defconst gensho-wet
-  (gensho--hex-palette gensho-wet-hsl))
+(defvar gensho-wet nil
+  "Derived hex palette for the wet (dark) variant.
+Computed from `gensho-wet-hsl' + `gensho-hsl-correction'.")
+
+(defun gensho--recompute-derived-palettes ()
+  "Recompute `gensho-dry' and `gensho-wet' from HSL bases + correction."
+  (setq gensho-dry (gensho--hex-palette gensho-dry-hsl)
+        gensho-wet (gensho--hex-palette gensho-wet-hsl)))
+
+;; Initial computation (after defcustom and helpers are defined).
+(gensho--recompute-derived-palettes)
 
 ;;;###autoload
 (defun gensho-palette (&optional variant)
@@ -108,6 +164,7 @@ The alist uses the theme's internal semantic palette keys:
                  for the chosen variant)
   red orange yellow green cyan blue purple magenta  (accent hues)
 
+The returned colors respect `gensho-hsl-correction' (if non-zero).
 For external tools / terminal emulators prefer `gensho-export-palette',
 which maps to conventional ANSI/terminal color names (background, black,
 brightblack, ...)."
@@ -401,6 +458,40 @@ brightblack, ...)."
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
    `(treemacs-root-face ((,class (:height unspecified))))
 
+   ;; --- Marginalia (completion annotations; tone down lively file attrs) ---
+   ;; Follows the mono usage (supplementary file info -> shadow/mono4 or
+   ;; font-lock-comment-face/mono5) and colored semantic de-facto documented
+   ;; in the design notes above.  Explicitly overrides marginalia's default
+   ;; inherits from font-lock-* (which would produce purple/red/magenta/cyan
+   ;; noise on "lrwxr-xr-x ..." permission strings and similar).
+   ;; All marginalia-file-priv-* now use the shadow family for visual
+   ;; uniformity within the compact permission annotation string.
+   ;; Weight/underline/italic provide intra-mono distinction (e.g. bold 'd'
+   ;; for dir, underline for write), consistent with the low-key
+   ;; dired-perm-write precedent (see above).  Leverages :inherit heavily
+   ;; to respect marginalia's own face hierarchy (e.g. marginalia-size
+   ;; inherits number, marginalia-file-name inherits documentation)
+   ;; without touching the base font-lock-*/shadow definitions.
+   `(marginalia-documentation ((,class (:inherit font-lock-comment-face))))
+   `(marginalia-file-name ((,class (:inherit marginalia-documentation))))
+   `(marginalia-file-owner ((,class (:inherit shadow))))
+   `(marginalia-size ((,class (:inherit shadow))))
+   `(marginalia-date ((,class (:inherit shadow))))
+   `(marginalia-file-priv-no ((,class (:inherit shadow))))
+   `(marginalia-file-priv-dir ((,class (:inherit shadow :weight bold))))
+   `(marginalia-file-priv-link ((,class (:inherit shadow :slant italic))))
+   `(marginalia-file-priv-read ((,class (:inherit shadow))))
+   `(marginalia-file-priv-write ((,class (:inherit shadow :underline t))))
+   `(marginalia-file-priv-exec ((,class (:inherit shadow))))
+   `(marginalia-file-priv-other ((,class (:inherit shadow))))
+   `(marginalia-file-priv-rare ((,class (:inherit shadow))))
+   ;; Other marginalia faces (key, number, on/off, archive, installed,
+   ;; value, etc.) intentionally left to their defface defaults or the
+   ;; existing font-lock-/success-/error- inherits; they align with
+   ;; semantic de-facto (e.g. on=success/green, archive=warning) or the
+   ;; cool cluster used for orderless matches and do not contribute to
+   ;; the file-perm liveliness problem.
+
    ;; --- Dev tools (eglot, compilation, ein) ---
    `(eglot-mode-line ((,class (:weight unspecified))))
    `(compilation-info ((,class (:weight unspecified))))
@@ -513,6 +604,27 @@ VARIANT is `wet' or `dry' (defaults from `frame-background-mode')."
        (error "Unsupported FORMAT: %s. Use 'json, 'alist or 'hex-list" format)))))
 
 ;;;###autoload
+(defun gensho-apply-hsl-correction (&optional correction)
+  "Recompute derived palettes using CORRECTION (or current value) and refresh.
+
+If the gensho theme is active this disables and reloads it so the new
+palette takes effect immediately (preserving the prior
+`frame-background-mode').  This is the supported way to change the
+correction at runtime after the package has been loaded.
+
+Example:
+  (setq gensho-hsl-correction \\='(0.0 0.0 -2.0))
+  (gensho-apply-hsl-correction)"
+  (when correction
+    (setq gensho-hsl-correction correction))
+  (gensho--recompute-derived-palettes)
+  (when (custom-theme-enabled-p 'gensho)
+    (let ((was-light (eq frame-background-mode 'light)))
+      (disable-theme 'gensho)
+      (setq frame-background-mode (if was-light 'light 'dark))
+      (load-theme 'gensho t))))
+
+;;;###autoload
 (when load-file-name
   (add-to-list 'custom-theme-load-path
                (file-name-directory load-file-name)))
@@ -520,3 +632,4 @@ VARIANT is `wet' or `dry' (defaults from `frame-background-mode')."
 (provide-theme 'gensho)
 (provide 'gensho-theme)
 ;;; gensho-theme.el ends here
+

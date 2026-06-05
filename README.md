@@ -61,7 +61,7 @@ After loading the package (or the theme), the palette is available in two ways:
 
   **Note**: `gensho-export-palette 'alist` returns an alist with ANSI keys (for consistency with rustcity-theme).
 
-The canonical definitions are the HSLuv constants (`gensho-wet-hsl` / `gensho-dry-hsl`). Hex values (`gensho-wet`, `gensho-dry`) and the accessors are derived from them.
+The canonical definitions are the HSLuv constants (`gensho-wet-hsl` / `gensho-dry-hsl`). Hex values (`gensho-wet`, `gensho-dry`) and the accessors are derived from them (respecting `gensho-hsl-correction` if non-zero).
 
 Example JSON (via `gensho-export-palette 'json 'wet`):
 ```json
@@ -110,7 +110,7 @@ Example JSON (via `gensho-export-palette 'json 'wet`):
 | brightmagenta       | purple       | #9a79c9         | #8960be            |
 | magenta             | magenta      | #cb63ae         | #ae5495            |
 
-Exact values are generated from HSLuv at load time. They are exposed via the HSL constants (`gensho-dry-hsl`, `gensho-wet-hsl`), the derived hex constants (`gensho-dry`, `gensho-wet`), and the accessors `gensho-palette` (internal semantic keys) / `gensho-export-palette` (ANSI/terminal names for external use).
+Exact values are generated from HSLuv at load time (with `gensho-hsl-correction` deltas applied if set). They are exposed via the HSL constants (`gensho-dry-hsl`, `gensho-wet-hsl`), the derived hex variables (`gensho-dry`, `gensho-wet`), and the accessors `gensho-palette` (internal semantic keys) / `gensho-export-palette` (ANSI/terminal names for external use).
 
 For terminal emulators that want a 16-color palette, use the values from `gensho-export-palette` (or run it and copy). The 16 ANSI slots are assigned from the 16 internal colors; some "bright" slots receive gray-ramp entries because the design uses one unified 8-step mono ramp + 8 accent hues (see `gensho-export-palette` for the full mapping including aliases like brightcyan=background). 'hex-list gives the direct ordered list for slot 0-15.
 
