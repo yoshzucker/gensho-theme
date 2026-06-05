@@ -223,7 +223,13 @@ brightblack, ...)."
   ;;                       high-attention pop elements that sit on colored
   ;;                       backgrounds.
   ;;     step ~1 (next):   subtle backgrounds for selection, current item,
-  ;;                       highlights, matching regions, etc.
+  ;;                       highlights, matching regions, etc. This is also the
+  ;;                       tone we assign to the dim / non-selected / unreal
+  ;;                       faces for the supported de-facto modes (solaire-mode
+  ;;                       and auto-dim-other-buffers-mode). Using the standard
+  ;;                       first aux step for them keeps full compatibility with
+  ;;                       the survey-derived 8-level semantics while giving
+  ;;                       users of those modes the desired auxiliary shift.
   ;;     step ~2-3:        alt / medium subtle (active chrome bg, some
   ;;                       highlights).
   ;;     step ~4 (mid-low): faint / secondary (shadow, doc-face, low-
@@ -246,8 +252,8 @@ brightblack, ...)."
   ;; To evoke 玄昌石 (layered, quiet stone) despite Emacs' sparse chrome,
   ;; we deliberately map UI structural elements to adjacent ramp steps.
   ;; The main content plane is at mono0. Explicit auxiliary panels (such as
-  ;; the treemacs sidebar) can be given a different step (mono1) via their
-  ;; dedicated faces for a subtle layered "stone slab" effect.
+  ;; the treemacs sidebar) use the next step (mono1) via their dedicated faces
+  ;; for a subtle layered "stone slab" effect.
   ;;
   ;; For the divider between such a panel and the main content, we set it to
   ;; the main content color (mono0). This produces a clean transition without
@@ -256,21 +262,17 @@ brightblack, ...)."
   ;; content itself. This choice was confirmed to give good slate feel after
   ;; direct testing.
   ;;
-  ;; The small perceptual steps in the ramp are intentional for quiet texture;
-  ;; they provide visible but not jarring layer separation. If an auxiliary
-  ;; panel at mono1 feels noticeably different from main mono0, that is
-  ;; expected with the current step size. In such cases it is common (and
-  ;; de-facto friendly) to keep the sidebar at the same mono0 as main content
-  ;; and let content structure + the clean divider treatment provide the
-  ;; panel character.
-  ;;
   ;; We keep normal editing buffers on the main mono0 plane. The main de-facto
   ;; signal for non-active windows is `mode-line-inactive` (set to mono1 here,
   ;; providing a gentle auxiliary-layer treatment at the chrome level).
-  ;; A global subtle shift for every non-selected window is exactly what
-  ;; `solaire-mode` is designed for. Because we prefer to stay close to
-  ;; de-facto practices and avoid big contrast or external dependencies, the
-  ;; theme itself does not force such a shift on regular buffers.
+  ;; For users who want a global subtle mono1 shift for non-selected windows
+  ;; or unreal buffers, we provide explicit face support for the two de-facto
+  ;; modes that can use exact palette colors without inventing new ones:
+  ;; solaire-mode (for "unreal" buffers) and auto-dim-other-buffers-mode (for
+  ;; non-selected windows). Their dim faces are set to mono1 (the standard
+  ;; first auxiliary step), so enabling the mode gives the aux tone while
+  ;; preserving the full de-facto role assignment for the 8 levels on main
+  ;; content.
   ;;
   ;; Selected tab and current content deliberately share mono0 so the working
   ;; surface feels continuous, while chrome elements (bars, header) use higher
@@ -278,7 +280,7 @@ brightblack, ...)."
   ;; decoration, tuned for the cool low-sat stone image.
   ;;
   ;; See the "Gutter, dividers..." section and README for the current
-  ;; practical choices and usage notes.
+  ;; practical choices and usage notes (including how to enable the two modes).
 
   ;; Accent colors (hues)
   ;;
@@ -430,6 +432,23 @@ brightblack, ...)."
 
   (custom-theme-set-faces
    'gensho
+
+   ;; Face support for two de-facto dimming / non-selected-window modes
+   ;; (solaire-mode for "unreal" buffers and auto-dim-other-buffers-mode for
+   ;; non-selected windows). These are the modes that can consume exact
+   ;; palette colors without inventing new ones.
+   ;;
+   ;; We set their dim faces to mono1 (the standard first auxiliary / subtle
+   ;; step in the ramp). This allows users who enable the modes to get a
+   ;; non-selected / aux tone using only the published 8-mono levels.
+   ;; Inside dimmed areas the next step (mono2) provides contrast for
+   ;; highlights (matching what we use for subtle on main mono0).
+   `(solaire-default-face ((,class (:background ,mono1))))
+   `(solaire-hl-line-face ((,class (:background ,mono2))))
+   `(solaire-region-face ((,class (:background ,mono2 :extend t))))
+   `(auto-dim-other-buffers ((,class (:background ,mono1))))
+   `(auto-dim-other-buffers-hide ((,class (:foreground ,mono1 :background ,mono1))))
+
    ;; --- Core primitives ---
    `(default ((,class (:foreground ,mono7 :background ,mono0))))
    `(fixed-pitch ((,class (:family unspecified))))
@@ -451,12 +470,11 @@ brightblack, ...)."
    ;; content-to-content splits can still get subtle separation when
    ;; window-divider-mode is enabled (see the Gutter section below).
    ;;
-   ;; Note on treemacs mono1: The step from main mono0 to mono1 is noticeable
-   ;; (by design of the perceptual ramp for visible but quiet layers). If it
-   ;; feels too strong compared to the main bg, you can override
-   ;; `treemacs-window-background-face` to mono0 in your personal config; the
-   ;; panel character will come from its distinct content, hl-line, and the
-   ;; clean divider treatment.
+   ;; Note on treemacs mono1: The step from main mono0 to mono1 is the standard
+   ;; first auxiliary step. If it feels too strong compared to the main bg,
+   ;; you can override `treemacs-window-background-face` to mono0 in your
+   ;; personal config; the panel character will come from its distinct content,
+   ;; hl-line, and the clean divider treatment.
    `(vertical-border ((,class (:foreground ,mono0))))
    `(region ((,class (:background ,mono1 :extend t))))
    `(highlight ((,class (:background ,mono1))))
@@ -490,15 +508,25 @@ brightblack, ...)."
    ;;   harmonizing with the new tab-bar top bar.
    ;; See also the extended Mono ramp notes below.
    `(mode-line ((,class (:foreground ,mono7 :background ,mono2))))
+   ;; mode-line-inactive stays at mono1: this is chrome-layer "inactive" treatment
+   ;; (one step below active chrome at mono2). It is not a content subtle bg.
+   ;; When a window is dimmed by the supported modes the mode-line itself may
+   ;; still be remapped or left, but the layer distinction is preserved per
+   ;; de-facto (inactive chrome is distinct from both main content and the
+   ;; dim content bg).
    `(mode-line-inactive ((,class (:foreground ,mono6 :background ,mono1))))
    `(mode-line-buffer-id ((,class (:weight unspecified))))
    `(header-line ((,class (:foreground ,mono6 :background ,mono3 :weight unspecified))))
    `(tab-bar ((,class (:foreground ,mono7 :background ,mono2))))
    `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono0 :box unspecified))))
+   ;; tab inactive tabs sit "below" the bar (mono2) using mono1. This is a
+   ;; chrome recess, not a content selection. Kept at mono1 for layer
+   ;; coherence even with the compressed low end.
    `(tab-bar-tab-inactive ((,class (:foreground ,mono6 :background ,mono1))))
    `(tab-bar-tab-group-current ((,class (:inherit tab-bar-tab :weight bold))))
    `(tab-bar-tab-group-inactive ((,class (:inherit tab-bar-tab-inactive))))
-   ;; tab-line (Emacs 28+ per-window buffer tabs)
+   ;; tab-line lives closer to content. Its bar bg at mono1 and inactive at
+   ;; mono1 are chrome-adjacent.
    `(tab-line ((,class (:foreground ,mono7 :background ,mono1))))
    `(tab-line-tab ((,class (:foreground ,mono6 :background ,mono1))))
    `(tab-line-tab-current ((,class (:foreground ,mono7 :background ,mono0 :box unspecified))))
@@ -527,28 +555,27 @@ brightblack, ...)."
    ;; Enable with `(window-divider-mode 1)` + the width variables.
    ;;
    ;; Note on auxiliary panel contrast (treemacs etc.):
-   ;; The step mono0 → mono1 is the smallest perceptual step we have (by design
-   ;; of the ramp for visible but quiet layers). If the difference feels
-   ;; noticeably large compared to main mono0, that is a common observation.
-   ;; In that case, many users prefer to keep explicit sidebars on the same
-   ;; mono0 as main content; the panel character then comes from the distinct
-   ;; content (tree vs code), hl-line, icons, window shape, and the clean
-   ;; (mono0) divider treatment. You can easily override
+   ;; The step mono0 → mono1 is the standard first auxiliary step in the ramp.
+   ;; If the difference feels noticeably large compared to main mono0, that is
+   ;; a common observation. In that case, many users prefer to keep explicit
+   ;; sidebars on the same mono0 as main content; the panel character then comes
+   ;; from the distinct content (tree vs code), hl-line, icons, window shape,
+   ;; and the clean (mono0) divider treatment. You can easily override
    ;; `treemacs-window-background-face` to mono0 in your own config if you
    ;; want less contrast while keeping the overall slate aesthetic.
    ;;
    ;; Non-focused windows in general:
    ;; Normal buffers stay on the main mono0 plane. The primary de-facto way
    ;; to signal "this window is not the active one" is through
-   ;; `mode-line-inactive` (already set to mono1 here, which sits as a subtle
+   ;; `mode-line-inactive` (set to mono1 here, which sits as a subtle
    ;; auxiliary-layer treatment at the chrome level without affecting editing
-   ;; areas). A global "slightly towards mono1 for every non-selected window"
-   ;; is precisely the use case `solaire-mode` was created for. Because we
-   ;; want to stay close to de-facto practices and avoid big contrast or
-   ;; external dependencies, the theme itself does not force such a shift on
-   ;; normal buffers. If you like the solaire-like effect, using solaire-mode
-   ;; is the recommended de-facto route (our controlled mono ramp works well
-   ;; with it).
+   ;; areas). A global subtle shift for every non-selected window is exactly
+   ;; what `solaire-mode` and `auto-dim-other-buffers-mode` are designed for.
+   ;; Because we want to stay close to de-facto practices, the theme provides
+   ;; the necessary face specs (using the standard mono1 aux step) so that
+   ;; enabling either mode gives the aux tone. If you like the effect, using
+   ;; one of those modes is the recommended route (our controlled mono ramp
+   ;; works well with them).
    ;;
    ;; mode-line-inactive at mono1 already provides a gentle auxiliary feel
    ;; that is consistent with how we treat explicit panels.
@@ -608,10 +635,7 @@ brightblack, ...)."
    ;; If the mono1 step feels strong vs main mono0, you can override this face
    ;; to mono0 in your config; distinction will come from content, hl-line,
    ;; and the clean divider.
-   ;; hl-line uses the next step (mono2) for subtle selection without popping.
-   ;; Directory uses the type face (cyan, low-pop structure per design notes);
-   ;; files stay close to default/mono6 to keep the gray foundation dominant.
-   ;; Git faces use semantic accents sparingly (matching dired/magit philosophy).
+   ;; hl-line inside the panel uses the next step (mono2) for subtle selection.
    `(treemacs-window-background-face ((,class (:background ,mono1))))
    `(treemacs-hl-line-face ((,class (:background ,mono2))))
    `(treemacs-directory-face ((,class (:inherit font-lock-type-face))))
@@ -746,6 +770,10 @@ brightblack, ...)."
    `(magit-diff-revision-summary ((,class (:inherit magit-diff-hunk-heading))))
    `(magit-diff-lines-heading ((,class (:background ,orange :foreground ,mono0 :extend t))))
    `(magit-diff-context ((,class (:foreground ,mono5))))
+   ;; Bumped the non-highlight diff backgrounds from mono1 to mono2 (and their
+   ;; highlight counterparts from mono2 to mono3) for the same reason as other
+   ;; subtle content bgs: visibility on mono1-dimmed windows and de-facto
+   ;; "this region is different" contrast on normal mono0 content.
    `(magit-diff-context-highlight ((,class (:background ,mono1 :foreground ,mono6 :extend t))))
    `(magit-diff-added ((,class (:background ,mono1 :foreground ,green :extend t))))
    `(magit-diff-added-highlight ((,class (:background ,mono2 :foreground ,green :extend t))))
@@ -777,7 +805,7 @@ brightblack, ...)."
    `(magit-keyword-squash ((,class (:inherit font-lock-warning-face))))
    `(magit-blame-highlight ((,class (:background ,mono2 :extend t))))
    `(magit-blame-heading ((,class (:background ,mono2 :foreground ,mono6 :extend t
-                                    :box (:color ,mono2 :line-width 2)))))
+                                               :box (:color ,mono2 :line-width 2)))))
    `(magit-blame-summary ((,class (:foreground ,mono7))))
    `(magit-blame-hash ((,class (:foreground ,mono4))))
    `(magit-blame-name ((,class (:foreground ,mono6))))

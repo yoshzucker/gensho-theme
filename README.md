@@ -187,8 +187,19 @@ color. Key choices for "slate feel":
   The small L steps in the mono ramp are sufficient for subtle plane
   distinction while preserving the quiet stone aesthetic. We stay close to
   de-facto practices and do not force global bg shifts for every non-selected
-  window (the classic tool for that is `solaire-mode`, which works well with
-  this theme's controlled ramp).
+  window.
+
+  For users who want a subtle auxiliary shift for non-selected / unreal areas,
+  the theme provides direct face support for the two de-facto modes that can
+  consume exact palette colors:
+  - `solaire-mode` (for "unreal" buffers such as sidebars/popups)
+  - `auto-dim-other-buffers-mode` (for non-selected windows)
+
+  Their dim faces are set to `mono1` (the standard first auxiliary step).
+  No new colors are invented. The classic tool for a global effect remains
+  those modes; our ramp + face specs make them work well with the 玄昌石
+  palette while preserving the full de-facto role assignment for the 8 levels
+  on main content.
 - **Child frames**: Popups (corfu, transient, etc.) get consistent `mono2`
   framing via `child-frame-border`.
 
