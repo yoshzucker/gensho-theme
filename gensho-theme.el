@@ -728,7 +728,7 @@ included in the 16-color export."
    `(outline-8 ((,class (:inherit font-lock-keyword-face))))
 
    ;; --- Org mode + extensions (rich derived faces) ---
-   `(org-headline-done ((,class (:foreground unspecified))))
+   `(org-headline-done ((,class (:inherit font-lock-comment-face))))
    `(org-agenda-dimmed-todo-face ((,class (:inherit font-lock-comment-face))))
    `(org-todo ((,class (:inverse-video t :foreground ,red :background ,mono0))))
    `(org-done ((,class (:inverse-video t :foreground ,green :background ,mono0))))
