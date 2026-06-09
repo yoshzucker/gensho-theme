@@ -60,23 +60,23 @@
 ;; dired-perm-write to mono4+underline) keep core semantics intact.
 (defconst gensho-dry-hsl
   '((mono0   . (200   5  26))
-    (dim0    . (200   5  27))   ; dedicated dim level for non-selected (weaker than mono1 aux)
-    (dim1    . (200   5  28.5))
-    (mono1   . (200   5  30))
-    (mono2   . (200   5  34))
-    (mono3   . (200   5  38))
-    (mono4   . (200   5  42))
-    (mono5   . (200   5  46))
-    (mono6   . (200   5  50))
-    (mono7   . (200   5  54))
-    (red     . (  0  55  49))
-    (orange  . ( 30  55  49))
-    (yellow  . ( 55  55  49))
-    (green   . (130  55  49))
-    (cyan    . (202  55  49))
-    (blue    . (242  55  49))
-    (purple  . (280  55  49))
-    (magenta . (325  55  49))))
+    (dim0    . (200   5  28))   ; dedicated dim level for non-selected (weaker than mono1 aux)
+    (dim1    . (200   5  30))
+    (mono1   . (200   5  32))
+    (mono2   . (200   5  38))
+    (mono3   . (200   5  44))
+    (mono4   . (200   5  50))
+    (mono5   . (200   5  56))
+    (mono6   . (200   5  62))
+    (mono7   . (200   5  68))
+    (red     . (  0  55  57))
+    (orange  . ( 30  55  57))
+    (yellow  . ( 55  55  57))
+    (green   . (130  55  57))
+    (cyan    . (202  55  57))
+    (blue    . (242  55  57))
+    (purple  . (280  55  57))
+    (magenta . (325  55  57))))
 
 (defconst gensho-wet-hsl
   '((mono0   . (200   5  16))
@@ -493,6 +493,7 @@ included in the 16-color export."
    ;; content, hl-line, and the clean divider treatment.
    `(vertical-border ((,class (:foreground ,mono0))))
    `(region ((,class (:background ,mono1 :extend t))))
+   `(secondary-selection ((,class (:background ,mono2))))
    `(highlight ((,class (:background ,mono1))))
    `(shadow ((,class (:foreground ,mono4))))
    `(match ((,class (:foreground ,mono0 :background ,green))))
@@ -503,7 +504,9 @@ included in the 16-color export."
    `(warning ((,class (:foreground ,yellow))))
    `(success ((,class (:foreground ,green))))
    `(minibuffer-prompt ((,class (:foreground ,mono6))))
+   `(minibuffer-nonselected ((,class (:foreground ,mono0 :background ,yellow))))
    `(tooltip ((,class (:foreground ,mono7 :background ,blue))))
+   `(help-key-binding ((,class (:foreground ,mono7 :background ,mono2 :box unspecified))))
 
    ;; --- Modeline, header-line, tab-bar, tab-line (UI chrome) ---
    ;; Slate texture strategy: We differentiate "chrome layers" (bars, side
@@ -728,30 +731,73 @@ included in the 16-color export."
    `(outline-8 ((,class (:inherit font-lock-keyword-face))))
 
    ;; --- Org mode + extensions (rich derived faces) ---
-   `(org-headline-done ((,class (:inherit font-lock-comment-face))))
-   `(org-agenda-dimmed-todo-face ((,class (:inherit font-lock-comment-face))))
+   ;; Document
+   `(org-document-title ((,class (:foreground ,mono7))))
+   `(org-document-info ((,class (:foreground ,mono6))))
+
+   ;; TODO / DONE
    `(org-todo ((,class (:inverse-video t :foreground ,red :background ,mono0))))
    `(org-done ((,class (:inverse-video t :foreground ,green :background ,mono0))))
-   `(org-document-title ((,class (:foreground ,mono6 :weight bold))))
-   `(org-column ((,class (:background ,mono2))))
-   `(org-column-title ((,class (:inherit org-column))))
-   `(org-table ((,class (:foreground ,mono6))))
-   `(org-tag ((,class (:weight unspecified))))
+   `(org-headline-todo ((,class (:foreground ,mono7))))
+   `(org-headline-done ((,class (:inherit font-lock-comment-face))))
    `(org-archived ((,class (:inherit org-headline-done))))
+   `(org-agenda-done ((,class (:inherit org-headline-done))))
+   `(org-agenda-dimmed-todo-face ((,class (:inherit font-lock-comment-face))))
+
+   ;; Markup / structure
    `(org-drawer ((,class (:inherit font-lock-comment-face))))
    `(org-special-keyword ((,class (:inherit font-lock-comment-face))))
+   `(org-ellipsis ((,class (:foreground ,mono4))))
+
+   ;; Tables / columns
+   `(org-table ((,class (:foreground ,mono6))))
+   `(org-table-header ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-column ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-column-title ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-tag ((,class (:weight unspecified))))
+
+   ;; Timestamps / dates
+   `(org-time-stamp ((,class (:foreground ,mono5))))
    `(org-date ((,class (:foreground ,mono5))))
+   `(org-sexp-date ((,class (:foreground ,mono5))))
+   `(org-date-selected ((,class (:foreground ,mono0 :background ,orange :inverse-video unspecified))))
+
+   ;; Formula / footnote
+   `(org-formula ((,class (:foreground ,yellow))))
+   `(org-footnote ((,class (:foreground ,mono5))))
+
+   ;; Agenda - structure & dates
+   `(org-agenda-structure ((,class (:foreground ,mono6))))
+   `(org-agenda-current-time ((,class (:foreground ,mono6 :weight bold))))
+   `(org-agenda-date-today ((,class (:foreground ,mono6))))
+   `(org-agenda-date-weekend ((,class (:foreground ,mono4))))
+   `(org-agenda-clocking ((,class (:slant italic))))
    `(org-time-grid ((,class (:inherit font-lock-comment-face))))
+
+   ;; Scheduling
    `(org-scheduled ((,class (:foreground ,mono6))))
    `(org-scheduled-today ((,class (:foreground ,mono6))))
    `(org-scheduled-previously ((,class (:foreground ,mono5))))
    `(org-upcoming-deadline ((,class (:inherit org-scheduled-previously))))
-   `(org-agenda-structure ((,class (:foreground ,mono6 :weight unspecified))))
-   `(org-agenda-current-time ((,class (:foreground ,mono6 :weight bold))))
-   `(org-agenda-date-today ((,class (:foreground ,mono6 :weight bold))))
-   `(org-agenda-date-weekend ((,class (:foreground ,mono4))))
-   `(org-agenda-clocking ((,class (:slant italic))))
-   `(org-habit-overdue-face ((,class (:background ,red))))
+
+   ;; Habits
+   `(org-habit-clear-face ((,class (:foreground ,mono0 :background ,blue))))
+   `(org-habit-clear-future-face ((,class (:foreground ,blue :background ,mono2))))
+   `(org-habit-ready-face ((,class (:foreground ,mono0 :background ,green))))
+   `(org-habit-ready-future-face ((,class (:foreground ,green :background ,mono2))))
+   `(org-habit-alert-face ((,class (:foreground ,mono0 :background ,yellow))))
+   `(org-habit-alert-future-face ((,class (:foreground ,yellow :background ,mono2))))
+   `(org-habit-overdue-face ((,class (:foreground ,mono0 :background ,red))))
+   `(org-habit-overdue-future-face ((,class (:foreground ,orange :background ,mono3))))
+
+   ;; Other org (low-frequency)
+   `(org-clock-overlay ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-mode-line-clock-overrun ((,class (:foreground ,mono0 :background ,red))))
+   `(org-dispatcher-highlight ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-latex-and-related ((,class (:foreground ,mono5))))
+   `(org-agenda-restriction-lock ((,class (:foreground ,mono7 :background ,mono2))))
+
+   ;; Extensions (org-around packages)
    `(org-roam-header-line ((,class (:inherit header-line))))
    `(org-noter-notes-exist-face ((,class (:foreground ,mono6))))
    `(org-noter-no-notes-exist-face ((,class (:foreground ,mono5))))
@@ -826,6 +872,8 @@ included in the 16-color export."
    ;; --- Calendar / eww (other apps) ---
    `(calendar-today ((,class (:inherit font-lock-warning-face))))
    `(calendar-weekend-header ((,class (:inherit font-lock-type-face))))
+   `(holiday ((,class (:background ,mono2))))
+   `(diary ((,class (:inherit font-lock-string-face))))
    `(eww-valid-certificate ((,class (:weight unspecified :foreground ,mono6))))))
 
 (defconst gensho--export-name-map
