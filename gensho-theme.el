@@ -444,6 +444,156 @@ included in the 16-color export."
   ;; reflection aesthetic. (s/l tweaks or frequency reduction possible later
   ;; -- see levers below.)
 
+  ;; Face spec discipline (Emacs `face-spec-recalc' behavior)
+  ;;
+  ;; When `custom-theme-set-faces' overrides a face, the override does NOT
+  ;; merge with the face's defface. `face-spec-recalc' first resets every
+  ;; attribute to `unspecified', then applies the theme spec on top. The
+  ;; defface spec is consulted only when no theme entry matches.
+  ;;
+  ;; The single exception is `:extend': if the theme spec leaves it
+  ;; unspecified, `face-spec-recalc' copies the value from defface. So
+  ;; `:extend' is the only attribute the theme can omit and still get the
+  ;; defface value.
+  ;;
+  ;; (`set-face-attribute' is a different, lower-level primitive with true
+  ;; merge semantics -- only the listed attributes change. The theme path
+  ;; goes through `face-spec-recalc' and does NOT have those semantics.)
+  ;;
+  ;; Consequence for gensho: for any attribute other than `:extend' that
+  ;; the defface specifies and we want to preserve, we must restate it
+  ;; explicitly. Omitting it means dropping it. So:
+  ;;   - `:extend'        -> omit (Emacs preserves the defface value).
+  ;;   - everything else  -> state explicitly if we want it; omit only when
+  ;;                         we actively want it cleared.
+
+  ;; Decoration attribute policy (survey-derived; same structure as the
+  ;; mono ramp / accent design notes above: facts -> pattern -> gensho
+  ;; choice).
+  ;;
+  ;; Big-picture philosophy.  Modern minimalist themes (Nord, Modus,
+  ;; Catppuccin) carry visual structure through a perceptual mono ramp
+  ;; (~8 steps) and adjacent bg planes; borders are removed or flattened.
+  ;; Information that the plane painting cannot carry (interactivity,
+  ;; diagnostics, hierarchy, state) is delegated to color accents and --
+  ;; only where the plane is insufficient -- to text-decoration
+  ;; attributes.  Heavier themes (Zenburn, doom-themes) keep older
+  ;; decoration conventions (released-button 3D box, broad straight-
+  ;; underline usage, frequent inverse-video).  Gensho follows the
+  ;; minimalist line on every attribute below.
+  ;;
+  ;; :underline t
+  ;;   Survey: minimalist themes confine straight underline to (a)
+  ;;   actionable navigation (`link', `link-visited').  Wave-style
+  ;;   underline for diagnostics (flyspell/flycheck) is a separate
+  ;;   built-in convention shared by all themes.  Heavier themes
+  ;;   additionally underline dates, references, document-structure
+  ;;   markers and "intra-mono distinction" cases such as dired
+  ;;   permission chars; minimalist themes do NOT (Nord, Catppuccin,
+  ;;   Modus do not override `dired-perm-write' / `marginalia-file-
+  ;;   priv-*' to add underline).  Gensho choice: minimalist.  Allowed:
+  ;;     (a) navigation: `link', `link-visited'.
+  ;;     (b) defface-provided straight underline that other minimalist
+  ;;         themes also let stand (they don't override): `calendar-
+  ;;         today' (defface has `:underline t', conventional today
+  ;;         marker -- we restate it to survive the theme replace).
+  ;;     (c) wave-style diagnostics (override flyspell/flycheck etc.
+  ;;         when needed -- keeps the built-in convention).
+  ;;   NOT allowed (do not restate defface underline, do not invent
+  ;;   intra-mono underline): document text and heading decoration --
+  ;;   `org-date', `org-footnote', `org-ellipsis', `org-column-title',
+  ;;   `org-latex-and-related', `eww-valid-certificate', font-lock
+  ;;   tty-fallback underlines; and intra-mono distinction faces --
+  ;;   `dired-perm-write', `marginalia-file-priv-write'.
+  ;;
+  ;; :weight bold
+  ;;   Survey: all themes use bold for hierarchy/structural prominence
+  ;;   (headings, outline levels) and state indicators (error/warning/
+  ;;   success).  Minimalist themes (Modus) gate it behind a user
+  ;;   toggle and default to "only where necessary"; heavier themes
+  ;;   additionally bold every font-lock keyword/function-name/type.
+  ;;   Gensho choice: minimalist.  Bold for exactly two roles:
+  ;;     (1) Hierarchy / structural prominence -- headings where the
+  ;;         bg plane alone cannot carry the body/heading split:
+  ;;         `org-document-title', magit-section-heading family,
+  ;;         `magit-diff-file-heading' family, `deft-*',
+  ;;         `line-number-current-line', `tab-bar-tab-group-current',
+  ;;         `tab-line-tab-modified'.
+  ;;     (2) State indicators on low-cardinality markers:
+  ;;         `error', `warning', `success', `mode-line-buffer-id'
+  ;;         (the buffer identifier), `org-tag', `org-agenda-{current-
+  ;;         time,date-today,date-weekend}', `org-dispatcher-highlight',
+  ;;         `org-noter-*', `magit-process-{ok,ng}', `magit-tag',
+  ;;         `magit-branch-{remote,local,current}', `magit-section-
+  ;;         heading-selection', `magit-diff-file-heading-highlight',
+  ;;         `ediff-fine-diff-*', `show-paren-match',
+  ;;         `eww-valid-certificate'.
+  ;;   No bold on syntax (font-lock-keyword-face etc.) -- color alone
+  ;;   carries the semantic.  When defface has bold but gensho wants
+  ;;   to drop it (high-frequency dense markers like `orderless-match-
+  ;;   face-*'; chrome neutrals like `header-line', `eglot-mode-line'),
+  ;;   simply omit `:weight' from the override -- theme replace makes
+  ;;   it unspecified automatically.
+  ;;
+  ;; :box
+  ;;   Survey: sparse in all themes (8-45 entries).  Heavier themes
+  ;;   (Zenburn) use `:style released-button' on mode-line / headers
+  ;;   (legacy 3D look); minimalist themes (Nord, Catppuccin) confine
+  ;;   `:box' to clickable affordances with flat `:line-width N :color X'.
+  ;;   Gensho choice: minimalist.  `:box' only where the bg plane
+  ;;   alone cannot carry the affordance:
+  ;;     - `magit-branch-current' (`:box t' delimits the current
+  ;;       branch among a list of branches).
+  ;;     - `magit-blame-heading' (sized box frames the blame line).
+  ;;   Otherwise, gensho carries affordance via the bg plane (e.g.
+  ;;   `help-key-binding' renders the key chip as a `mono2' fill on the
+  ;;   `mono0' body plane -- the step is enough, no box is added).
+  ;;   No `:style released-button' anywhere (fights slate flat).
+  ;;
+  ;; :slant italic
+  ;;   Survey: all themes use italic for secondary/de-emphasized
+  ;;   content (comments, docstrings, blockquotes, citations).
+  ;;   Italic is gentler than bold and does not impede plane reading;
+  ;;   even minimalist themes use it readily.  Gensho follows the
+  ;;   common pattern.  Used on: `font-lock-comment-face',
+  ;;   `marginalia-file-priv-link', `magit-branch-upstream',
+  ;;   `org-agenda-clocking', `org-agenda-date-today' (with bold).
+  ;;
+  ;; :inverse-video
+  ;;   Survey: minimalist themes (Nord 0, Catppuccin tty fallback only,
+  ;;   Modus sparse) avoid it; heavier themes (Doom, Zenburn) use it
+  ;;   sparsely.  Reason for avoiding: explicit bg/fg pairs are more
+  ;;   predictable and interact more cleanly with the mono-ramp planes.
+  ;;   Gensho choice: never use `:inverse-video'.  Where defface has
+  ;;   it (`org-todo', `org-done', `org-date-selected'), gensho writes
+  ;;   the equivalent display as an explicit `:foreground' / `:background'
+  ;;   pair (theme replace drops the defface inverse-video for free).
+  ;;
+  ;; :inherit (not a decoration but related)
+  ;;   When defface `:inherit' aligns with gensho intent, RESTATE it
+  ;;   explicitly (theme override replaces defface, so omitted inherit
+  ;;   is dropped).  When defface `:inherit' conflicts, re-target it
+  ;;   (e.g. `dired-directory' -> `font-lock-type-face', `font-lock-
+  ;;   doc-face' -> `mono4').
+  ;;
+  ;; Face-stack defence reset (`:weight normal :slant normal')
+  ;;   Defface sometimes places an explicit normal-reset to prevent
+  ;;   weight/slant inheriting from the face stack below (overlay
+  ;;   before-string, text under another face's region).  Gensho
+  ;;   preserves the reset only where the inheritance path exists:
+  ;;   `magit-blame-heading' (before-string overlay; magit source
+  ;;   comments on the inheritance risk), `org-column' (drawn atop
+  ;;   underlying buffer text).  Margin overlays and independent
+  ;;   regions do NOT need it -- `magit-log-author' / `magit-log-date'
+  ;;   live in the margin overlay so the reset is omitted.
+  ;;
+  ;; No explicit `:foo unspecified'
+  ;;   Theme override replaces defface entirely, so omitting an
+  ;;   attribute IS unspecified.  Writing `:foo unspecified' carries
+  ;;   no functional effect; the documentation value is covered by
+  ;;   this block.  We therefore do not write any `:foo unspecified'
+  ;;   in the spec list below.
+
   (custom-theme-set-faces
    'gensho
 
@@ -466,8 +616,6 @@ included in the 16-color export."
 
    ;; --- Core primitives ---
    `(default ((,class (:foreground ,mono7 :background ,mono0))))
-   `(fixed-pitch ((,class (:family unspecified))))
-   `(variable-pitch ((,class (:family unspecified))))
    `(cursor ((,class (:background ,mono6))))
    `(fringe ((,class (:background ,mono0))))
    `(border ((,class (:background ,mono0))))
@@ -492,7 +640,7 @@ included in the 16-color export."
    ;; your personal config; the panel character will come from its distinct
    ;; content, hl-line, and the clean divider treatment.
    `(vertical-border ((,class (:foreground ,mono0))))
-   `(region ((,class (:background ,mono1 :extend t))))
+   `(region ((,class (:background ,mono1))))
    `(secondary-selection ((,class (:background ,mono2))))
    `(highlight ((,class (:background ,mono1))))
    `(shadow ((,class (:foreground ,mono4))))
@@ -500,13 +648,13 @@ included in the 16-color export."
    `(show-paren-match ((,class (:background ,mono1 :weight bold))))
    `(link ((,class (:foreground ,blue :underline t))))
    `(link-visited ((,class (:foreground ,purple :underline t))))
-   `(error ((,class (:foreground ,red))))
-   `(warning ((,class (:foreground ,yellow))))
-   `(success ((,class (:foreground ,green))))
+   `(error ((,class (:foreground ,red :weight bold))))
+   `(warning ((,class (:foreground ,yellow :weight bold))))
+   `(success ((,class (:foreground ,green :weight bold))))
    `(minibuffer-prompt ((,class (:foreground ,mono6))))
    `(minibuffer-nonselected ((,class (:foreground ,mono0 :background ,yellow))))
-   `(tooltip ((,class (:foreground ,mono7 :background ,blue))))
-   `(help-key-binding ((,class (:foreground ,mono7 :background ,mono2 :box unspecified))))
+   `(tooltip ((,class (:foreground ,mono7 :background ,blue :inherit variable-pitch))))
+   `(help-key-binding ((,class (:foreground ,mono7 :background ,mono2 :inherit fixed-pitch))))
 
    ;; --- Modeline, header-line, tab-bar, tab-line (UI chrome) ---
    ;; Slate texture strategy: We differentiate "chrome layers" (bars, side
@@ -534,10 +682,10 @@ included in the 16-color export."
    ;; de-facto (inactive chrome is distinct from both main content and the
    ;; dim content bg).
    `(mode-line-inactive ((,class (:foreground ,mono6 :background ,mono1))))
-   `(mode-line-buffer-id ((,class (:weight unspecified))))
-   `(header-line ((,class (:foreground ,mono6 :background ,mono3 :weight unspecified))))
+   `(mode-line-buffer-id ((,class (:weight bold))))
+   `(header-line ((,class (:foreground ,mono6 :background ,mono3))))
    `(tab-bar ((,class (:foreground ,mono7 :background ,mono2))))
-   `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono0 :box unspecified))))
+   `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono0))))
    ;; tab inactive tabs sit "below" the bar (mono2) using mono1. This is a
    ;; chrome recess, not a content selection. Kept at mono1 for layer
    ;; coherence even with the compressed low end.
@@ -548,7 +696,7 @@ included in the 16-color export."
    ;; mono1 are chrome-adjacent.
    `(tab-line ((,class (:foreground ,mono7 :background ,mono1))))
    `(tab-line-tab ((,class (:foreground ,mono6 :background ,mono1))))
-   `(tab-line-tab-current ((,class (:foreground ,mono7 :background ,mono0 :box unspecified))))
+   `(tab-line-tab-current ((,class (:foreground ,mono7 :background ,mono0))))
    `(tab-line-tab-inactive ((,class (:foreground ,mono5 :background ,mono1))))
    `(tab-line-tab-modified ((,class (:inherit tab-line-tab-current :weight bold))))
 
@@ -627,22 +775,23 @@ included in the 16-color export."
 
    ;; --- Completion & narrowing (modern UIs) ---
    `(vertico-current ((,class (:background ,mono1))))
-   `(orderless-match-face-0 ((,class (:weight unspecified :foreground ,cyan))))
-   `(orderless-match-face-1 ((,class (:weight unspecified :foreground ,blue))))
-   `(orderless-match-face-2 ((,class (:weight unspecified :foreground ,purple))))
-   `(orderless-match-face-3 ((,class (:weight unspecified :foreground ,magenta))))
+   `(orderless-match-face-0 ((,class (:foreground ,cyan))))
+   `(orderless-match-face-1 ((,class (:foreground ,blue))))
+   `(orderless-match-face-2 ((,class (:foreground ,purple))))
+   `(orderless-match-face-3 ((,class (:foreground ,magenta))))
    `(consult-buffer ((,class (:foreground ,mono6))))
    `(consult-file ((,class (:foreground ,mono5))))
    `(corfu-default ((,class (:background ,mono1))))
-   `(corfu-current ((,class (:foreground ,mono6 :background ,mono1))))
+   `(corfu-current ((,class (:foreground ,mono7 :background ,mono2))))
    `(corfu-bar ((,class (:background ,mono5))))
+   `(corfu-border ((,class (:background ,mono2))))
 
    ;; --- Navigation & project (dired, bookmark, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
-   `(dired-perm-write ((,class (:foreground ,mono4 :underline t))))
-   `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5 :background unspecified))))
+   `(dired-perm-write ((,class (:foreground ,mono4))))
+   `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
-   `(treemacs-root-face ((,class (:height unspecified))))
+   `(treemacs-root-face ((,class (:inherit font-lock-constant-face))))
    ;; Slate sidebar: give the whole treemacs window a distinct layer (mono1)
    ;; so it reads as a side stone panel next to the main content plane (mono0).
    ;; With `vertical-border` at mono0, the transition is clean (no extra seam
@@ -700,7 +849,7 @@ included in the 16-color export."
    `(marginalia-file-priv-dir ((,class (:inherit shadow :weight bold))))
    `(marginalia-file-priv-link ((,class (:inherit shadow :slant italic))))
    `(marginalia-file-priv-read ((,class (:inherit shadow))))
-   `(marginalia-file-priv-write ((,class (:inherit shadow :underline t))))
+   `(marginalia-file-priv-write ((,class (:inherit shadow))))
    `(marginalia-file-priv-exec ((,class (:inherit shadow))))
    `(marginalia-file-priv-other ((,class (:inherit shadow))))
    `(marginalia-file-priv-rare ((,class (:inherit shadow))))
@@ -712,10 +861,10 @@ included in the 16-color export."
    ;; the file-perm liveliness problem.
 
    ;; --- Dev tools (eglot, compilation, ein) ---
-   `(eglot-mode-line ((,class (:weight unspecified))))
-   `(compilation-info ((,class (:weight unspecified))))
-   `(compilation-mode-line-fail ((,class (:weight unspecified))))
-   `(compilation-mode-line-exit ((,class (:weight unspecified))))
+   `(eglot-mode-line ((,class (:inherit mode-line))))
+   `(compilation-info ((,class (:inherit success))))
+   `(compilation-mode-line-fail ((,class (:inherit compilation-error))))
+   `(compilation-mode-line-exit ((,class (:inherit compilation-info))))
 
    ;; --- Evil / vim-emulation ---
    `(evil-snipe-first-match-face ((,class (:background ,mono3))))
@@ -732,12 +881,12 @@ included in the 16-color export."
 
    ;; --- Org mode + extensions (rich derived faces) ---
    ;; Document
-   `(org-document-title ((,class (:foreground ,mono7))))
+   `(org-document-title ((,class (:foreground ,mono7 :weight bold))))
    `(org-document-info ((,class (:foreground ,mono6))))
 
    ;; TODO / DONE
-   `(org-todo ((,class (:inverse-video t :foreground ,red :background ,mono0))))
-   `(org-done ((,class (:inverse-video t :foreground ,green :background ,mono0))))
+   `(org-todo ((,class (:foreground ,mono0 :background ,red))))
+   `(org-done ((,class (:foreground ,mono0 :background ,green))))
    `(org-headline-todo ((,class (:foreground ,mono7))))
    `(org-headline-done ((,class (:inherit font-lock-comment-face))))
    `(org-archived ((,class (:inherit org-headline-done))))
@@ -752,15 +901,15 @@ included in the 16-color export."
    ;; Tables / columns
    `(org-table ((,class (:foreground ,mono6))))
    `(org-table-header ((,class (:foreground ,mono7 :background ,mono2))))
-   `(org-column ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-column ((,class (:foreground ,mono7 :background ,mono2 :weight normal :slant normal :strike-through nil :underline nil))))
    `(org-column-title ((,class (:foreground ,mono7 :background ,mono2))))
-   `(org-tag ((,class (:weight unspecified))))
+   `(org-tag ((,class (:weight bold))))
 
    ;; Timestamps / dates
    `(org-time-stamp ((,class (:foreground ,mono5))))
    `(org-date ((,class (:foreground ,mono5))))
    `(org-sexp-date ((,class (:foreground ,mono5))))
-   `(org-date-selected ((,class (:foreground ,mono0 :background ,orange :inverse-video unspecified))))
+   `(org-date-selected ((,class (:foreground ,mono0 :background ,orange))))
 
    ;; Formula / footnote
    `(org-formula ((,class (:foreground ,yellow))))
@@ -769,9 +918,9 @@ included in the 16-color export."
    ;; Agenda - structure & dates
    `(org-agenda-structure ((,class (:foreground ,mono6))))
    `(org-agenda-current-time ((,class (:foreground ,mono6 :weight bold))))
-   `(org-agenda-date-today ((,class (:foreground ,mono6))))
-   `(org-agenda-date-weekend ((,class (:foreground ,mono4))))
-   `(org-agenda-clocking ((,class (:slant italic))))
+   `(org-agenda-date-today ((,class (:foreground ,mono6 :weight bold :slant italic))))
+   `(org-agenda-date-weekend ((,class (:foreground ,mono4 :weight bold))))
+   `(org-agenda-clocking ((,class (:slant italic :inherit secondary-selection))))
    `(org-time-grid ((,class (:inherit font-lock-comment-face))))
 
    ;; Scheduling
@@ -793,16 +942,16 @@ included in the 16-color export."
    ;; Other org (low-frequency)
    `(org-clock-overlay ((,class (:foreground ,mono7 :background ,mono2))))
    `(org-mode-line-clock-overrun ((,class (:foreground ,mono0 :background ,red))))
-   `(org-dispatcher-highlight ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-dispatcher-highlight ((,class (:foreground ,mono7 :background ,mono2 :weight bold))))
    `(org-latex-and-related ((,class (:foreground ,mono5))))
    `(org-agenda-restriction-lock ((,class (:foreground ,mono7 :background ,mono2))))
 
    ;; Extensions (org-around packages)
    `(org-roam-header-line ((,class (:inherit header-line))))
-   `(org-noter-notes-exist-face ((,class (:foreground ,mono6))))
-   `(org-noter-no-notes-exist-face ((,class (:foreground ,mono5))))
-   `(deft-header-face ((,class (:inherit font-lock-builtin-face))))
-   `(deft-title-face ((,class (:inherit font-lock-constant-face))))
+   `(org-noter-notes-exist-face ((,class (:foreground ,mono6 :weight bold))))
+   `(org-noter-no-notes-exist-face ((,class (:foreground ,mono5 :weight bold))))
+   `(deft-header-face ((,class (:inherit font-lock-builtin-face :weight bold))))
+   `(deft-title-face ((,class (:inherit font-lock-constant-face :weight bold))))
 
    ;; --- Magit (Git porcelain; rich derived mode) ---
    ;; Follows design notes: "Org/Magit/Agenda and similar rich modes inherit the
@@ -813,32 +962,34 @@ included in the 16-color export."
    ;; non-standard "light" variant (dry: still dark bg + light text, unlike
    ;; typical white-bg light themes).
    ;; Prefer :inherit + mono* over direct colors for harmony and DRY.
-   ;; :extend t for full-width lines (Emacs 27+).
-   `(magit-section-highlight ((,class (:background ,mono1 :extend t))))
+   ;; `:extend t' on diff/heading/blame bgs is supplied by defface and
+   ;; preserved by `face-spec-recalc' (see face-spec discipline notes above),
+   ;; so it is not restated here.
+   `(magit-section-highlight ((,class (:background ,mono1))))
    `(magit-section-heading ((,class (:inherit font-lock-keyword-face :weight bold))))
    `(magit-section-secondary-heading ((,class (:weight bold))))
    `(magit-section-heading-selection ((,class (:inherit magit-section-highlight :foreground ,orange :weight bold))))
    `(magit-diff-file-heading ((,class (:weight bold))))
    `(magit-diff-file-heading-highlight ((,class (:inherit magit-section-highlight :weight bold))))
    `(magit-diff-file-heading-selection ((,class (:inherit magit-diff-file-heading-highlight :foreground ,orange))))
-   `(magit-diff-hunk-heading ((,class (:background ,mono2 :foreground ,mono6 :extend t))))
-   `(magit-diff-hunk-heading-highlight ((,class (:background ,mono3 :foreground ,mono7 :extend t))))
+   `(magit-diff-hunk-heading ((,class (:background ,mono2 :foreground ,mono6))))
+   `(magit-diff-hunk-heading-highlight ((,class (:background ,mono3 :foreground ,mono7))))
    `(magit-diff-hunk-heading-selection ((,class (:inherit magit-diff-hunk-heading-highlight :foreground ,orange))))
    `(magit-diff-conflict-heading ((,class (:inherit magit-diff-hunk-heading))))
    `(magit-diff-revision-summary ((,class (:inherit magit-diff-hunk-heading))))
-   `(magit-diff-lines-heading ((,class (:background ,orange :foreground ,mono0 :extend t))))
+   `(magit-diff-lines-heading ((,class (:background ,orange :foreground ,mono0))))
    `(magit-diff-context ((,class (:foreground ,mono5))))
    ;; Bumped the non-highlight diff backgrounds from mono1 to mono2 (and their
    ;; highlight counterparts from mono2 to mono3) for the same reason as other
    ;; subtle content bgs: visibility on mono1-dimmed windows and de-facto
    ;; "this region is different" contrast on normal mono0 content.
-   `(magit-diff-context-highlight ((,class (:background ,mono1 :foreground ,mono6 :extend t))))
-   `(magit-diff-added ((,class (:background ,mono1 :foreground ,green :extend t))))
-   `(magit-diff-added-highlight ((,class (:background ,mono2 :foreground ,green :extend t))))
-   `(magit-diff-removed ((,class (:background ,mono1 :foreground ,red :extend t))))
-   `(magit-diff-removed-highlight ((,class (:background ,mono2 :foreground ,red :extend t))))
-   `(magit-diff-base ((,class (:background ,mono1 :foreground ,yellow :extend t))))
-   `(magit-diff-base-highlight ((,class (:background ,mono2 :foreground ,yellow :extend t))))
+   `(magit-diff-context-highlight ((,class (:background ,mono1 :foreground ,mono6))))
+   `(magit-diff-added ((,class (:background ,mono1 :foreground ,green))))
+   `(magit-diff-added-highlight ((,class (:background ,mono2 :foreground ,green))))
+   `(magit-diff-removed ((,class (:background ,mono1 :foreground ,red))))
+   `(magit-diff-removed-highlight ((,class (:background ,mono2 :foreground ,red))))
+   `(magit-diff-base ((,class (:background ,mono1 :foreground ,yellow))))
+   `(magit-diff-base-highlight ((,class (:background ,mono2 :foreground ,yellow))))
    `(magit-diff-our ((,class (:inherit magit-diff-removed))))
    `(magit-diff-their ((,class (:inherit magit-diff-added))))
    `(magit-diff-our-highlight ((,class (:inherit magit-diff-removed-highlight))))
@@ -861,20 +1012,59 @@ included in the 16-color export."
    `(magit-refname ((,class (:foreground ,mono5))))
    `(magit-keyword ((,class (:inherit font-lock-string-face))))
    `(magit-keyword-squash ((,class (:inherit font-lock-warning-face))))
-   `(magit-blame-highlight ((,class (:background ,mono2 :extend t))))
-   `(magit-blame-heading ((,class (:background ,mono2 :foreground ,mono6 :extend t
+   `(magit-blame-highlight ((,class (:background ,mono2))))
+   `(magit-blame-heading ((,class (:background ,mono2 :foreground ,mono6
+                                               :weight normal :slant normal
                                                :box (:color ,mono2 :line-width 2)))))
    `(magit-blame-summary ((,class (:foreground ,mono7))))
    `(magit-blame-hash ((,class (:foreground ,mono4))))
    `(magit-blame-name ((,class (:foreground ,mono6))))
    `(magit-blame-date ((,class (:foreground ,mono5))))
 
+   ;; --- diff-hl / ediff ---
+   ;; Mirrors the `magit-diff-*' semantic mapping (red=removed, green=added,
+   ;; yellow=base/combined, blue=ancestor). Follows the face-spec discipline
+   ;; documented above: `:extend t' is omitted when the defface already
+   ;; supplies it (vanilla ediff-current-*/ediff-even-*/ediff-odd-* defaces
+   ;; all carry it). `ediff-fine-*' defaces have no `:extend t' at 88+ colors
+   ;; and no `:weight bold' either, so `:weight bold' is added explicitly as
+   ;; our chosen emphasis marker for fine-diff sub-regions inside a current
+   ;; diff. diff-hl renders one column in the fringe, so only foreground hue
+   ;; matters; bg/extend from the inherit chain are intentionally dropped.
+
+   ;; diff-hl
+   `(diff-hl-insert ((,class (:foreground ,green))))
+   `(diff-hl-delete ((,class (:foreground ,red))))
+   `(diff-hl-change ((,class (:foreground ,yellow))))
+
+   ;; ediff: current diff (focused chunk)
+   `(ediff-current-diff-A        ((,class (:background ,mono1 :foreground ,red))))
+   `(ediff-current-diff-B        ((,class (:background ,mono1 :foreground ,green))))
+   `(ediff-current-diff-C        ((,class (:background ,mono1 :foreground ,yellow))))
+   `(ediff-current-diff-Ancestor ((,class (:background ,mono1 :foreground ,blue))))
+
+   ;; ediff: fine diff (sub-region emphasis within current; bold is our marker)
+   `(ediff-fine-diff-A           ((,class (:background ,mono2 :foreground ,red    :weight bold))))
+   `(ediff-fine-diff-B           ((,class (:background ,mono2 :foreground ,green  :weight bold))))
+   `(ediff-fine-diff-C           ((,class (:background ,mono2 :foreground ,yellow :weight bold))))
+   `(ediff-fine-diff-Ancestor    ((,class (:background ,mono2 :foreground ,blue   :weight bold))))
+
+   ;; ediff: non-current diffs (alternating markers; quiet so current wins)
+   `(ediff-even-diff-A           ((,class (:background ,mono1 :foreground ,mono5))))
+   `(ediff-even-diff-B           ((,class (:background ,mono1 :foreground ,mono5))))
+   `(ediff-even-diff-C           ((,class (:background ,mono1 :foreground ,mono5))))
+   `(ediff-even-diff-Ancestor    ((,class (:background ,mono1 :foreground ,mono5))))
+   `(ediff-odd-diff-A            ((,class (:background ,mono1 :foreground ,mono5))))
+   `(ediff-odd-diff-B            ((,class (:background ,mono1 :foreground ,mono5))))
+   `(ediff-odd-diff-C            ((,class (:background ,mono1 :foreground ,mono5))))
+   `(ediff-odd-diff-Ancestor     ((,class (:background ,mono1 :foreground ,mono5))))
+
    ;; --- Calendar / eww (other apps) ---
-   `(calendar-today ((,class (:inherit font-lock-warning-face))))
+   `(calendar-today ((,class (:inherit font-lock-warning-face :underline t))))
    `(calendar-weekend-header ((,class (:inherit font-lock-type-face))))
    `(holiday ((,class (:background ,mono2))))
    `(diary ((,class (:inherit font-lock-string-face))))
-   `(eww-valid-certificate ((,class (:weight unspecified :foreground ,mono6))))))
+   `(eww-valid-certificate ((,class (:weight bold :foreground ,mono6))))))
 
 (defconst gensho--export-name-map
   '((mono0   . background)
