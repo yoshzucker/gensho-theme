@@ -32,6 +32,14 @@
 ;;   (gensho-apply-hsl-correction)                 ; then reloads theme if active
 ;; See the defcustom docstring for details and caveats (linear approx.).
 ;;
+;; Optional dimming modes:
+;;   Gensho provides face specs for `solaire-mode' (unreal buffers) and
+;;   `auto-dim-other-buffers-mode' (non-selected windows) and reserves
+;;   palette steps (`dim0' / `dim1') for them.  These modes are not
+;;   enabled by the theme; the user opts in by enabling the mode in
+;;   their config.  When enabled, gensho's pre-bound dim faces take
+;;   effect with no further configuration.
+;;
 ;; Magit faces are included and follow the theme's mono ramp + limited accents
 ;; (with heavy use of :inherit) so that highlights/headers harmonize even in the
 ;; non-standard "light" (dry) variant, which uses dark bg + light text.
@@ -57,7 +65,7 @@
 ;; increase for more vividness while preserving stone dominance.  Current h
 ;; chosen for natural "映り込む" elements (petals, momiji, light, sky) +
 ;; de-facto semantics. Additional reductions (e.g. orderless to cool cluster,
-;; dired-perm-write to mono4+underline) keep core semantics intact.
+;; dired-perm-write to mono4) keep core semantics intact.
 (defconst gensho-dry-hsl
   '((mono0   . (200   5  26))
     (dim0    . (200   5  28))   ; dedicated dim level for non-selected (weaker than mono1 aux)
@@ -288,13 +296,92 @@ included in the 16-color export."
   ;; the main 8 levels (subtle at mono1 etc.) on content. dim1 is also
   ;; available for customization.
   ;;
-  ;; Selected tab and current content deliberately share mono0 so the working
-  ;; surface feels continuous, while chrome elements (bars, header) use higher
-  ;; steps for layered separation. This is ramp layering as the primary
-  ;; decoration, tuned for the cool low-sat stone image.
+  ;; Chrome direction -- walled / sunken / ha-ha
+  ;; (garden architecture metaphor)
   ;;
-  ;; See the "Gutter, dividers..." section and README for the current
-  ;; practical choices and usage notes (including how to enable the two modes).
+  ;; Three patterns coexist for chrome elements (mode-line, tab-bar,
+  ;; tab-line) that sit alongside the body.  The metaphor comes from
+  ;; garden architecture: the "garden floor" is body bg (the active
+  ;; editing surface) and the surroundings are chrome bg.
+  ;;
+  ;;   Walled: active chrome FAR from body in the fg direction (tall
+  ;;     wall); inactive chrome closer to body.  The active focus
+  ;;     area is surrounded by tall walls that make it stand out.
+  ;;
+  ;;   Sunken: active chrome at body level; inactive chrome moves
+  ;;     slightly TOWARD fg from body.  The active focused window
+  ;;     reads as the sunken floor; inactive surroundings rise as
+  ;;     walls on the fg-facing side.
+  ;;
+  ;;   Ha-ha (sunken fence): active chrome at or near body level;
+  ;;     inactive chrome moves AWAY FROM fg from body (into a ditch
+  ;;     on the anti-fg side).  The focus area sits on garden level
+  ;;     while the surrounding chrome lies in a recessed ditch.
+  ;;
+  ;; "Toward fg" and "anti-fg" are direction-agnostic on the brightness
+  ;; ramp.  For themes where fg is brighter than bg (gensho and most
+  ;; dark themes), toward fg = brighter, anti-fg = darker.  For typical
+  ;; light themes (bg brighter than fg), toward fg = darker, anti-fg
+  ;; = brighter.  The semantic (active position vs inactive position
+  ;; relative to body and fg) is what matters; absolute brightness
+  ;; depends on the theme's bg/fg relationship.
+  ;;
+  ;; Whether a theme can express all three patterns depends on its
+  ;; palette geometry: if body bg sits at an extreme of the ramp
+  ;; (e.g. pure white in Modus operandi, pure black in Modus vivendi,
+  ;; or the darkest entry like gensho's mono0), the anti-fg direction
+  ;; has no palette room, so ha-ha is not available -- only walled
+  ;; or sunken.
+  ;;
+  ;; Survey (source inspection, body-distance + fg-direction analysis):
+  ;;
+  ;;   Theme               | mode-line | tab-bar
+  ;;   --------------------+-----------+--------
+  ;;   Modus operandi/viv. | walled    | sunken
+  ;;   Catppuccin mocha    | ha-ha     | walled
+  ;;   Catppuccin latte    | sunken    | walled
+  ;;   Doom one dark       | ha-ha     | ha-ha
+  ;;   Doom one light      | sunken    | sunken
+  ;;
+  ;; All three patterns are in active use.  The same design intent
+  ;; can classify differently between a theme's light and dark
+  ;; variants (Doom one and Catppuccin's mode-line) because the bg/fg
+  ;; direction flips while the chrome's palette direction stays
+  ;; fixed.  Themes with body bg at a brightness extreme (Modus) can
+  ;; only express walled or sunken (no ha-ha possible).
+  ;;
+  ;; The pattern interacts with the theme's "dim direction" -- where
+  ;; body bg shifts when a non-active window is dimmed (by solaire /
+  ;; auto-dim-other-buffers, or any equivalent mode), and whether
+  ;; that direction is toward fg or anti-fg:
+  ;;
+  ;;   - dim toward fg (gensho's wet/dry both: mono0 -> dim0 brighter,
+  ;;     which is the fg direction since gensho has fg > bg):
+  ;;     sunken keeps all "active" elements (body, mode-line, selected
+  ;;     tab) at the same body-bg stratum, with dim'd bodies and
+  ;;     inactive chrome rising slightly toward fg as a coherent unit.
+  ;;     Walled or ha-ha would split "active" across strata.
+  ;;
+  ;;   - dim anti-fg: active body sits on the fg side of dim'd body.
+  ;;     Walled or ha-ha (active chrome aligned with active body)
+  ;;     would keep "active" coherent; sunken would split it.
+  ;;
+  ;; This is orthogonal to whether any dimming mode is actually
+  ;; enabled -- the principle applies to the static palette geometry.
+  ;;
+  ;; This theme commits to fully sunken: `mode-line', `tab-bar-tab'
+  ;; and `tab-line-tab-current' bg = mono0 (= active body).  The
+  ;; active window's chrome is visually flush with the editing
+  ;; surface; the inactive window gets a visible mono1 bar.  Among
+  ;; surveyed themes, the closest match is Doom one light (also
+  ;; fully sunken).
+  ;;
+  ;; Gensho commits to fully sunken because its dim direction is
+  ;; "toward fg" in both variants (mono0 -> dim0 brighter, which is
+  ;; the fg direction since gensho has fg > bg in both wet and dry).
+  ;; Sunken keeps all "active" elements bottoming out at one stratum.
+  ;; Aesthetically, the body-level chrome evokes the 玄昌石 (Genshō
+  ;; stone) slate recess.
 
   ;; Accent colors (hues)
   ;;
@@ -427,13 +514,14 @@ included in the 16-color export."
   ;; Additional reductions (within de facto scope):
   ;; - minibuffer: orderless-match 4 faces now use cool cluster (cyan/blue/
   ;;   purple/magenta) instead of warm-pop (orange etc.) to reduce "ガチャガチャ";
-  ;;   tooltip bg changed to blue (cooler).
+  ;;   tooltip bg uses mono2 (neutral chrome plane per minimalist tooltip
+  ;;   pattern -- Doom, Catppuccin -- not a colored cluster member).
   ;; - org: table/habit-overdue/agenda-current-time/document-title/date
   ;;   shifted to mono/low to reduce "うるさい" colored text (core todo/done
   ;;   status kept as de facto).
-  ;; - dired: dired-perm-write explicitly mono4+underline (low-key for
-  ;;   permissions like lrwxr-xr-x, matching de facto patterns like solarized
-  ;;   gray+underline; file/buffer supplementary info less noisy).
+  ;; - dired: dired-perm-write at mono4 (low-key for permissions; intra-mono
+  ;;   underline retired per the decoration policy below to align with the
+  ;;   minimalist-themes survey on `:underline').
   ;; (Further s/l increase or frequency reduction possible after visual
   ;; confirmation; see below.)
 
@@ -597,17 +685,12 @@ included in the 16-color export."
   (custom-theme-set-faces
    'gensho
 
-   ;; Face support for two de-facto dimming / non-selected-window modes
-   ;; (solaire-mode for "unreal" buffers and auto-dim-other-buffers-mode for
-   ;; non-selected windows). These are the modes that can consume exact
-   ;; palette colors without inventing new ones.
-   ;;
-   ;; We use dedicated dim levels (dim0/dim1, positioned between mono0 and
-   ;; the standard aux mono1) for their base dim faces. This keeps the main
-   ;; 8-step mono ramp (and its de-facto roles at mono1 for subtle selection
-   ;; etc. on main content) unchanged, while allowing a weaker "ほんの少し"
-   ;; dim for non-selected areas. Inside dimmed areas, highlights use the
-   ;; main subtle step (mono1) or mono2 for contrast.
+   ;; Optional integration: solaire-mode (unreal buffers) and
+   ;; auto-dim-other-buffers-mode (non-selected windows).  These specs
+   ;; bind gensho's dedicated `dim0' / `dim1' palette steps to the
+   ;; mode-specific dim faces (dormant until the user enables the mode).
+   ;; Enabling the modes is the user's choice; gensho only provides the
+   ;; face wiring here.
    `(solaire-default-face ((,class (:background ,dim0))))
    `(solaire-hl-line-face ((,class (:background ,mono1))))
    `(solaire-region-face ((,class (:background ,mono1 :extend t))))
@@ -653,36 +736,37 @@ included in the 16-color export."
    `(success ((,class (:foreground ,green :weight bold))))
    `(minibuffer-prompt ((,class (:foreground ,mono6))))
    `(minibuffer-nonselected ((,class (:foreground ,mono0 :background ,yellow))))
-   `(tooltip ((,class (:foreground ,mono7 :background ,blue :inherit variable-pitch))))
+   `(tooltip ((,class (:foreground ,mono7 :background ,mono2 :inherit variable-pitch))))
    `(help-key-binding ((,class (:foreground ,mono7 :background ,mono2 :inherit fixed-pitch))))
 
    ;; --- Modeline, header-line, tab-bar, tab-line (UI chrome) ---
-   ;; Slate texture strategy: We differentiate "chrome layers" (bars, side
-   ;; panels) from the main "content plane" using adjacent steps on the mono
-   ;; ramp. This is the primary way to create visual depth and "stone slab"
-   ;; feel in Emacs, which lacks heavy decorative primitives (borders, shadows,
-   ;; titlebar gradients) available in other editors.
+   ;; Per-face level assignments (the "Chrome direction" notes in the
+   ;; mono ramp design above explain why sunken):
    ;; - tab-bar bg at mono2 (toolbar/frame chrome layer).
-   ;; - Selected tab bg = mono0 (flushes with buffer default bg), so the active
-   ;;   view surface is continuous from the tab "lid" down into the content.
-   ;;   This creates the recessed/chiseled selection + unified chrome slab the
-   ;;   user requested, evoking layered 玄昌石.
-   ;; - Inactive tabs sit on the bar (mono1) with dimmer fg for clear but quiet
-   ;;   distinction.
-   ;; - tab-line (per-window) follows a similar but slightly more content-adjacent
-   ;;   layering (bar at mono1) since it lives closer to buffer content.
-   ;; - mode-line already uses mono2 (active chrome) and mono1 (inactive),
-   ;;   harmonizing with the new tab-bar top bar.
-   ;; See also the extended Mono ramp notes below.
-   `(mode-line ((,class (:foreground ,mono7 :background ,mono2))))
-   ;; mode-line-inactive stays at mono1: this is chrome-layer "inactive" treatment
-   ;; (one step below active chrome at mono2). It is not a content subtle bg.
-   ;; When a window is dimmed by the supported modes the mode-line itself may
-   ;; still be remapped or left, but the layer distinction is preserved per
-   ;; de-facto (inactive chrome is distinct from both main content and the
-   ;; dim content bg).
+   ;; - Selected tab bg = mono0 (flushes with buffer default bg), so the
+   ;;   active view surface is continuous from the tab "lid" down into
+   ;;   the content -- the 玄昌石 slate recess.
+   ;; - Inactive tabs sit on the bar (mono1) with dimmer fg for clear
+   ;;   but quiet distinction.
+   ;; - tab-line (per-window) follows the same logic but slightly more
+   ;;   content-adjacent (bar at mono1 since it lives closer to buffer).
+   ;; - mode-line uses mono0 (active = body level) and mono1 (inactive),
+   ;;   matching tab-bar's sunken direction.  The active mode-line is
+   ;;   visually flush with the editing surface (no bar separator);
+   ;;   the inactive mode-line is the one that appears as a visible bar
+   ;;   (mono1).
+   `(mode-line ((,class (:foreground ,mono7 :background ,mono0))))
+   ;; mode-line-inactive at mono1 -- the inactive chrome reference plane
+   ;; shared with `tab-bar-tab-inactive' and `tab-line-tab-inactive', one
+   ;; step above the deepest body stratum.  This level is invariant under
+   ;; the walled / sunken / ha-ha choice for the active mode-line (see
+   ;; "Chrome direction" notes in the mono ramp design above).
    `(mode-line-inactive ((,class (:foreground ,mono6 :background ,mono1))))
    `(mode-line-buffer-id ((,class (:weight bold))))
+   ;; mode-line-highlight: minimalist convention (Nord, Doom) -- replace the
+   ;; defface flat box on mouse-over with a plane shift (inherit `highlight'),
+   ;; matching the "no boxes; bg-plane carries affordance" attribute policy.
+   `(mode-line-highlight ((,class (:inherit highlight))))
    `(header-line ((,class (:foreground ,mono6 :background ,mono3))))
    `(tab-bar ((,class (:foreground ,mono7 :background ,mono2))))
    `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono0))))
@@ -834,9 +918,12 @@ included in the 16-color export."
    ;; noise on "lrwxr-xr-x ..." permission strings and similar).
    ;; All marginalia-file-priv-* now use the shadow family for visual
    ;; uniformity within the compact permission annotation string.
-   ;; Weight/underline/italic provide intra-mono distinction (e.g. bold 'd'
-   ;; for dir, underline for write), consistent with the low-key
-   ;; dired-perm-write precedent (see above).  Leverages :inherit heavily
+   ;; Weight/italic provide intra-mono distinction (e.g. bold 'd' for dir,
+   ;; italic for link).  Underline is intentionally NOT used here -- see
+   ;; the `:underline' decoration policy above (minimalist themes such as
+   ;; Nord, Catppuccin and Modus do not underline intra-mono distinction
+   ;; cases like `dired-perm-write' / `marginalia-file-priv-*'; gensho
+   ;; follows that line).  Leverages :inherit heavily
    ;; to respect marginalia's own face hierarchy (e.g. marginalia-size
    ;; inherits number, marginalia-file-name inherits documentation)
    ;; without touching the base font-lock-*/shadow definitions.
