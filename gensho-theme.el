@@ -1108,6 +1108,26 @@ included in the 16-color export."
    `(magit-blame-name ((,class (:foreground ,mono6))))
    `(magit-blame-date ((,class (:foreground ,mono5))))
 
+   ;; --- transient ---
+   ;; Override only the faces that hard-code hex/ANSI names in their defface.
+   ;; The rest of transient's faces inherit cleanly (font-lock, shadow,
+   ;; highlight, font-lock-builtin-face) and need no entry here.
+   ;; Key colors follow gensho semantics: stay=green (continuity),
+   ;; return=yellow (warn/route), recurse=blue (descend/link),
+   ;; stack=magenta (escalate), exit=orange (decisive leave), noop=mono4
+   ;; (shadow ramp). Box colors of the (non)standard-key faces are pinned
+   ;; to gensho's cyan / magenta instead of vanilla ANSI cyan / magenta.
+   `(transient-enabled-suffix  ((,class (:background ,green :foreground ,mono0 :weight bold))))
+   `(transient-disabled-suffix ((,class (:background ,red   :foreground ,mono0 :weight bold))))
+   `(transient-key-stay        ((,class (:foreground ,green))))
+   `(transient-key-noop        ((,class (:foreground ,mono4))))
+   `(transient-key-return      ((,class (:foreground ,yellow))))
+   `(transient-key-recurse     ((,class (:foreground ,blue))))
+   `(transient-key-stack       ((,class (:foreground ,magenta))))
+   `(transient-key-exit        ((,class (:foreground ,orange))))
+   `(transient-nonstandard-key ((,class (:box (:line-width (-1 . -1) :color ,cyan)))))
+   `(transient-mismatched-key  ((,class (:box (:line-width (-1 . -1) :color ,magenta)))))
+
    ;; --- diff-hl / ediff ---
    ;; Mirrors the `magit-diff-*' semantic mapping (red=removed, green=added,
    ;; yellow=base/combined, blue=ancestor). Follows the face-spec discipline
