@@ -1153,15 +1153,36 @@ included in the 16-color export."
    `(diary ((,class (:inherit font-lock-string-face))))
    `(eww-valid-certificate ((,class (:weight bold :foreground ,mono6))))))
 
+;; ANSI 16-color slot strategy (Solarized convention).
+;;
+;; 8 hues fill: red/green/yellow/blue/magenta/cyan (slots 1-6) plus
+;; orange at brightred (9) and purple at brightmagenta (13). The
+;; remaining 8 slots carry the mono ramp:
+;;
+;;   slot 0  black        mono1   (subtle, just above bg)
+;;   slot 7  white        mono5   (medium fg)
+;;   slot 8  brightblack  mono0   (= bg; intentionally near-invisible for dim
+;;                                   text, following Solarized's base03 placement)
+;;   slot 10 brightgreen  mono2
+;;   slot 11 brightyellow mono3
+;;   slot 12 brightblue   mono4
+;;   slot 14 brightcyan   mono6   (a usable light grey, NEVER bg — Solarized's
+;;                                   base1 / Nord's nord7 placement)
+;;   slot 15 brightwhite  mono7   (brightest fg)
+;;
+;; Only slot 8 (brightblack) collides with bg by design; this is the long-
+;; standing Solarized convention used by every dim-comment-aware tool.
+;; Every other slot is a distinct readable color, so TUI tools that write
+;; brightcyan, brightyellow, etc. produce visible output.
 (defconst gensho--export-name-map
   '((mono0   . background)
-    (mono0   . brightcyan)
+    (mono0   . brightblack)    ; was: brightcyan (slot 14) — moved per Solarized
     (mono1   . black)
-    (mono2   . brightblack)
-    (mono3   . brightblue)
-    (mono4   . brightgreen)
+    (mono2   . brightgreen)    ; was: brightblack (slot 8)
+    (mono3   . brightyellow)   ; was: brightblue (slot 12); slot 11 used to be mono6
+    (mono4   . brightblue)     ; was: brightgreen (slot 10)
     (mono5   . white)
-    (mono6   . brightyellow)
+    (mono6   . brightcyan)     ; was: brightyellow (slot 11) — fixes slot 14 collision
     (mono7   . foreground)
     (mono7   . brightwhite)
     (red     . red)
@@ -1179,10 +1200,13 @@ included in the 16-color export."
 FORMAT is `json', `alist', or `hex-list'.
 VARIANT is `wet' or `dry' (defaults from `frame-background-mode')."
   (let* ((palette (gensho-palette variant))
-         ;; ANSI names in the 0-15 slot order for hex-list.
+         ;; Canonical ANSI 0-15 slot order. Earlier versions of this list had
+         ;; brightyellow and brightmagenta swapped, which would mislabel
+         ;; positions 11 and 13 for any external consumer that indexes by
+         ;; slot number rather than by name.
          (ordered-keys '(black red green yellow blue magenta cyan white
-                               brightblack brightred brightgreen brightmagenta
-                               brightblue brightyellow brightcyan brightwhite)))
+                               brightblack brightred brightgreen brightyellow
+                               brightblue brightmagenta brightcyan brightwhite)))
     (pcase format
       ('alist
        (mapcar (lambda (pair)
