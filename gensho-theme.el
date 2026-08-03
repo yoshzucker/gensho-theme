@@ -1171,7 +1171,23 @@ included in the 16-color export."
    `(calendar-weekend-header ((,class (:inherit font-lock-type-face))))
    `(holiday ((,class (:background ,mono2))))
    `(diary ((,class (:inherit font-lock-string-face))))
-   `(eww-valid-certificate ((,class (:weight bold :foreground ,mono6))))))
+   `(eww-valid-certificate ((,class (:weight bold :foreground ,mono6))))
+
+   ;; --- org-timeblock (calendar day/week time blocks) ---
+   ;; Block palette maps to gensho's muted hues with mono0 knockout text (as in
+   ;; `match'); the hour line and selection/mark use the mono ramp so they never
+   ;; collide with a block hue.  now = green (present position); red is reserved
+   ;; for caution/warning and is therefore not used for the now line.
+   `(org-timeblock-red     ((,class (:background ,red     :foreground ,mono0 :extend t))))
+   `(org-timeblock-green   ((,class (:background ,green   :foreground ,mono0 :extend t))))
+   `(org-timeblock-yellow  ((,class (:background ,yellow  :foreground ,mono0 :extend t))))
+   `(org-timeblock-blue    ((,class (:background ,blue    :foreground ,mono0 :extend t))))
+   `(org-timeblock-magenta ((,class (:background ,magenta :foreground ,mono0 :extend t))))
+   `(org-timeblock-cyan    ((,class (:background ,cyan    :foreground ,mono0 :extend t))))
+   `(org-timeblock-hours-line ((,class (:background ,mono2 :extend t))))
+   `(org-timeblock-current-time-indicator ((,class (:background ,green))))
+   `(org-timeblock-select ((,class (:background ,mono5 :foreground ,mono0 :extend t))))
+   `(org-timeblock-mark ((,class (:background ,mono3 :foreground ,mono7 :extend t))))))
 
 ;; ANSI 16-color slot strategy (Solarized convention).
 ;;
