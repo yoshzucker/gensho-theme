@@ -1040,6 +1040,21 @@ included in the 16-color export."
    `(deft-header-face ((,class (:inherit font-lock-builtin-face :weight bold))))
    `(deft-title-face ((,class (:inherit font-lock-constant-face :weight bold))))
 
+   ;; org-dayflow — timeline column chrome on the mono/dim ramp (not raw gray20).
+   ;; Weekend bands must stay one step above mono0 so they read as texture, not
+   ;; as a second UI layer; dim0 sits between mono0 and mono1 for that purpose.
+   `(org-dayflow-weekend-column-face ((,class (:background ,dim0 :extend t))))
+   `(org-dayflow-weekend-face ((,class (:foreground ,mono4 :weight bold))))
+   `(org-dayflow-weekday-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-units-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-label-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-query-face ((,class (:inherit org-agenda-structure))))
+   `(org-dayflow-now-column-face ((,class (:background ,mono1 :extend t))))
+   `(org-dayflow-cursor-column-face ((,class (:background ,mono1 :extend t))))
+   `(org-dayflow-now-unit-face ((,class (:inherit calendar-today))))
+   `(org-dayflow-cursor-unit-face ((,class (:inherit org-date-selected))))
+   `(org-dayflow-title-done-face ((,class (:inherit org-headline-done :strike-through t))))
+
    ;; --- Magit (Git porcelain; rich derived mode) ---
    ;; Follows design notes: "Org/Magit/Agenda and similar rich modes inherit the
    ;; font-lock and mono decisions heavily; hues only for key status indicators".
