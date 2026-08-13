@@ -1055,6 +1055,34 @@ included in the 16-color export."
    `(org-dayflow-cursor-unit-face ((,class (:inherit org-date-selected))))
    `(org-dayflow-title-done-face ((,class (:inherit org-headline-done :strike-through t))))
 
+   ;; org-foresight — the capacity bar and the rows it adds to the agenda.
+   ;; Two rules.  Grey says "work already claimed", and only three steps of it,
+   ;; two apart, because a ramp fine enough to encode six things is a ramp
+   ;; nobody reads; booked tops out at mono6, the badge's own grey, so nothing
+   ;; inside a section is louder than the badge announcing it.  Colour is kept
+   ;; for what is not claimed work, which is where the decisions are: blue is
+   ;; room -- spare, and the free gaps it is made of -- and green is life,
+   ;; neither work nor room, and not to be mistaken for either.  The bar draws
+   ;; private between travel and promised, so every pair that touches is either
+   ;; two steps of grey apart or a change of hue.
+   `(org-foresight-report-booked ((,class (:foreground ,mono6))))
+   `(org-foresight-report-travel ((,class (:foreground ,mono4))))
+   `(org-foresight-report-promised ((,class (:foreground ,mono2))))
+   `(org-foresight-report-spare ((,class (:foreground ,blue))))
+   `(org-foresight-report-private ((,class (:foreground ,green))))
+   ;; Shares promised's step rather than taking a fourth: it draws the
+   ;; alongside rows and the rare unclaimed band, which sit outside the
+   ;; accounting and never beside a bar segment.  Worth setting even so --
+   ;; the package's own default is `font-lock-comment-face', which is mono5
+   ;; here, and that would make somebody else's fixture the same grey as a
+   ;; journey.  Not green: unclaimed waking hours are not a private
+   ;; commitment, and the model turns on keeping those apart.
+   `(org-foresight-report-grey ((,class (:foreground ,mono2))))
+   ;; The reserve keeps the package's outline in the overrun's own yellow: it
+   ;; is the last thing between the day and an overrun, so spending it is
+   ;; being over without having said so.
+   `(org-foresight-agenda-derived ((,class (:slant italic))))
+
    ;; --- Magit (Git porcelain; rich derived mode) ---
    ;; Follows design notes: "Org/Magit/Agenda and similar rich modes inherit the
    ;; font-lock and mono decisions heavily; hues only for key status indicators".
