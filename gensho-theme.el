@@ -1070,18 +1070,17 @@ included in the 16-color export."
    `(org-foresight-report-promised ((,class (:foreground ,mono2))))
    `(org-foresight-report-spare ((,class (:foreground ,blue))))
    `(org-foresight-report-private ((,class (:foreground ,green))))
-   ;; Shares promised's step rather than taking a fourth: it draws the
-   ;; alongside rows and the rare unclaimed band, which sit outside the
-   ;; accounting and never beside a bar segment.  Worth setting even so --
-   ;; the package's own default is `font-lock-comment-face', which is mono5
-   ;; here, and that would make somebody else's fixture the same grey as a
-   ;; journey.  Not green: unclaimed waking hours are not a private
-   ;; commitment, and the model turns on keeping those apart.
-   `(org-foresight-report-grey ((,class (:foreground ,mono2))))
    ;; The reserve keeps the package's outline in the overrun's own yellow: it
    ;; is the last thing between the day and an overrun, so spending it is
    ;; being over without having said so.
    `(org-foresight-agenda-derived ((,class (:slant italic))))
+   `(org-foresight-agenda-free ((,class (:foreground ,blue :slant italic))))
+   ;; The one mark that reports no decision, so the one mark with no hue: the
+   ;; other two borrow the overrun's yellow and the colour of room precisely
+   ;; because something has to be done about them.  mono6, the badges' grey --
+   ;; a step brighter than the rows it sits among, which is all a mark that
+   ;; means "nothing to resolve here" needs to be.
+   `(org-foresight-agenda-shared ((,class (:foreground ,mono6))))
 
    ;; --- Magit (Git porcelain; rich derived mode) ---
    ;; Follows design notes: "Org/Magit/Agenda and similar rich modes inherit the
