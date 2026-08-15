@@ -1069,6 +1069,9 @@ included in the 16-color export."
    `(org-foresight-report-travel ((,class (:foreground ,mono4))))
    `(org-foresight-report-promised ((,class (:foreground ,mono2))))
    `(org-foresight-report-spare ((,class (:foreground ,blue))))
+   ;; Emptiness, wherever it is drawn: the same dot in the bar and in the
+   ;; sparkline, so two identical characters stop looking like two sizes.
+   `(org-foresight-report-empty ((,class (:foreground ,mono4 :weight bold))))
    `(org-foresight-report-private ((,class (:foreground ,green))))
    ;; The reserve keeps the package's outline in the overrun's own yellow: it
    ;; is the last thing between the day and an overrun, so spending it is
@@ -1081,6 +1084,9 @@ included in the 16-color export."
    ;; a step brighter than the rows it sits among, which is all a mark that
    ;; means "nothing to resolve here" needs to be.
    `(org-foresight-agenda-shared ((,class (:foreground ,mono6))))
+   ;; Where a row came from, not what to do about it: the same quiet grey as
+   ;; the shared mark, and the shape tells them apart.
+   `(org-foresight-agenda-arrival ((,class (:foreground ,mono6))))
 
    ;; --- Magit (Git porcelain; rich derived mode) ---
    ;; Follows design notes: "Org/Magit/Agenda and similar rich modes inherit the
