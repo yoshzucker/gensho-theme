@@ -1087,6 +1087,10 @@ included in the 16-color export."
    ;; Where a row came from, not what to do about it: the same quiet grey as
    ;; the shared mark, and the shape tells them apart.
    `(org-foresight-agenda-arrival ((,class (:foreground ,mono6))))
+   ;; The bracket down the left edge marking the working hours.  A step below
+   ;; the marks: a mark asks for a decision and the frame asks for nothing, so
+   ;; it should be findable when looked for and invisible when not.
+   `(org-foresight-agenda-spine ((,class (:foreground ,mono5))))
 
    ;; --- Magit (Git porcelain; rich derived mode) ---
    ;; Follows design notes: "Org/Magit/Agenda and similar rich modes inherit the
