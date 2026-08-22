@@ -1075,7 +1075,19 @@ included in the 16-color export."
    `(org-foresight-report-private ((,class (:foreground ,green))))
    ;; The reserve keeps the package's outline in the overrun's own yellow: it
    ;; is the last thing between the day and an overrun, so spending it is
-   ;; being over without having said so.
+   ;; being over without having said so.  `unclocked' is that same reserve
+   ;; found spent, so it is the same yellow -- the outline held open ahead of
+   ;; now, met empty behind it.  The bar boxes every segment itself, so
+   ;; nothing here needs to set one.
+   `(org-foresight-report-overcommitted ((,class (:foreground ,yellow))))
+   `(org-foresight-report-surge ((,class (:foreground ,yellow))))
+   `(org-foresight-report-unclocked ((,class (:foreground ,yellow))))
+   ;; Hours the watcher accounted for and nobody claimed: the grey the
+   ;; sparkline already gives time away from the machine.
+   `(org-foresight-report-away ((,class (:foreground ,mono4))))
+   ;; Where now falls, in the colour of the hours it protects: everything
+   ;; right of the mark is the part of the day still to be decided.
+   `(org-foresight-report-now ((,class (:foreground ,green))))
    `(org-foresight-agenda-derived ((,class (:slant italic))))
    `(org-foresight-agenda-free ((,class (:foreground ,blue :slant italic))))
    ;; The one mark that reports no decision, so the one mark with no hue: the
