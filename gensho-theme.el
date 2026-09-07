@@ -259,8 +259,7 @@ included in the 16-color export."
   ;;                       and UI elements.
   ;;     step ~6 (high-mid): prominent secondary (cursor bg, minibuffer
   ;;                         prompt, current completion item text, inactive
-  ;;                         chrome fg, variables/identifiers as the most
-  ;;                         frequent text, etc.).
+  ;;                         chrome fg, etc.).
   ;;     step ~7 (highest): primary / main foreground (default text,
   ;;                        active chrome text, etc.).
   ;;   (The exact numbering and lightness deltas are implementation
@@ -398,6 +397,20 @@ included in the 16-color export."
   ;;    - Constants: frequently a blue or near-background hue (avoids over-use
   ;;      of warm complements).
   ;;    - Warnings/alerts: yellow (kept distinct from error red).
+  ;;    - Variables/identifiers: a hue, and warm in the plurality.  Counted
+  ;;      over the themes shipped with Emacs plus solarized (16 definitions):
+  ;;      8 warm (orange, saddle brown, yellow-green, khaki -- tango,
+  ;;      dichromacy, tsdh, wheatgrass, wombat, misterioso), 4 green, 3
+  ;;      blue/cyan (adwaita, solarized, modus), 1 magenta.  None grey.
+  ;;      This role was the one missing from the list above, and a role with
+  ;;      no entry fell through to the mono ramp: `font-lock-variable-name-
+  ;;      face' sat at step 6 on the reading that identifiers are the most
+  ;;      frequent text and should not shout.  That reading is a real
+  ;;      minority school, but it belongs to themes that leave *every*
+  ;;      identifier-ish face uncoloured; here it made one face of eight an
+  ;;      outlier -- and `outline-2' inherits this face by Emacs' own default
+  ;;      (outline.el), so every level-two heading in Org came out at step 6,
+  ;;      dimmer than the body text under it.
   ;;    - Errors: red (near-universal); success/DONE states: green.
   ;;
   ;; B. Strategies for choosing specific hues against a tinted background
@@ -843,7 +856,7 @@ included in the 16-color export."
    `(font-lock-doc-face ((,class (:foreground ,mono4))))
    `(font-lock-keyword-face ((,class (:foreground ,purple))))
    `(font-lock-builtin-face ((,class (:foreground ,red))))
-   `(font-lock-variable-name-face ((,class (:foreground ,mono6))))
+   `(font-lock-variable-name-face ((,class (:foreground ,orange))))
    `(font-lock-function-name-face ((,class (:foreground ,magenta))))
    `(font-lock-type-face ((,class (:foreground ,cyan))))
    `(font-lock-constant-face ((,class (:foreground ,blue))))
