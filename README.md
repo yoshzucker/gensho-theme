@@ -164,6 +164,16 @@ color. Key choices for "slate feel":
                     (face-remap-add-relative
                      'default `(:background ,(alist-get 'mono1 (gensho-palette))))))))
     ```
+- **dired-subtree**: The package ships six hard-coded backgrounds of its own,
+  so an expanded listing would arrive in tones the rest of the frame never
+  uses. It asks for six background planes; the ramp has two below chrome
+  (`mono0` for content, `mono1` for the subtle step on top of it), and
+  spending `mono2` or `mono3` here would put a file listing at tab-bar
+  brightness. The background therefore carries the one thing it is needed for
+  — where an expanded block begins and ends — and the two planes alternate, so
+  each nesting sits on the other plane from the block holding it. Absolute
+  depth is carried by the indentation. Set `dired-subtree-use-backgrounds` to
+  nil if you would rather have no planes at all.
 - **Dividers & gutters**: `vertical-border` is set to the main content color
   (mono0). This was confirmed after direct testing to give the cleanest slate
   feel: when a side panel uses a different tone (e.g. treemacs at mono1), the

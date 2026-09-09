@@ -749,7 +749,12 @@ included in the 16-color export."
    `(success ((,class (:foreground ,green :weight bold))))
    `(minibuffer-prompt ((,class (:foreground ,mono6))))
    `(minibuffer-nonselected ((,class (:foreground ,mono0 :background ,yellow))))
-   `(tooltip ((,class (:foreground ,mono7 :background ,mono2 :inherit variable-pitch))))
+   ;; Emacs's own definition of `tooltip' inherits `variable-pitch', which
+   ;; puts a proportional face in front of somebody whose every other window
+   ;; is monospaced.  A tooltip carries key bindings, signatures and paths --
+   ;; the sort of text that is read by its columns -- so it takes the fixed
+   ;; face like the rest of the frame.
+   `(tooltip ((,class (:foreground ,mono7 :background ,mono2 :inherit fixed-pitch))))
    `(help-key-binding ((,class (:foreground ,mono7 :background ,mono2 :inherit fixed-pitch))))
 
    ;; --- Modeline, header-line, tab-bar, tab-line (UI chrome) ---
@@ -886,6 +891,22 @@ included in the 16-color export."
    ;; --- Navigation & project (dired, bookmark, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
    `(dired-perm-write ((,class (:foreground ,mono4))))
+   ;; dired-subtree hard-codes six backgrounds of its own, a teal-tinted dark
+   ;; ramp that belongs to no theme, so an expanded listing arrives in tones
+   ;; the frame uses nowhere else.  It asks for six background planes; the
+   ;; ramp has two below chrome (mono0 for content, mono1 for the subtle step
+   ;; on top of it), and spending mono2 or mono3 here would put a file listing
+   ;; at tab-bar brightness.  So the background carries the one thing it is
+   ;; needed for -- where an expanded block begins and ends -- and the two
+   ;; planes alternate: each nesting sits on the other plane from the block
+   ;; holding it, read as one slab laid over another.  How deep a row is, is
+   ;; already said by the indentation.
+   `(dired-subtree-depth-1-face ((,class (:background ,mono1))))
+   `(dired-subtree-depth-2-face ((,class (:background ,mono0))))
+   `(dired-subtree-depth-3-face ((,class (:background ,mono1))))
+   `(dired-subtree-depth-4-face ((,class (:background ,mono0))))
+   `(dired-subtree-depth-5-face ((,class (:background ,mono1))))
+   `(dired-subtree-depth-6-face ((,class (:background ,mono0))))
    `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
    `(treemacs-root-face ((,class (:inherit font-lock-constant-face))))
@@ -1058,17 +1079,24 @@ included in the 16-color export."
    `(deft-header-face ((,class (:inherit font-lock-builtin-face :weight bold))))
    `(deft-title-face ((,class (:inherit font-lock-constant-face :weight bold))))
 
-   ;; org-dayflow — timeline column chrome on the mono/dim ramp (not raw gray20).
-   ;; Weekend bands must stay one step above mono0 so they read as texture, not
-   ;; as a second UI layer; dim0 sits between mono0 and mono1 for that purpose.
-   `(org-dayflow-weekend-column-face ((,class (:background ,dim0 :extend t))))
+   ;; org-dayflow -- timeline column chrome on the mono ramp (not raw gray20).
+   ;; Three bands can land on the same column: the weekend shade, the current
+   ;; time and the cursor.  The weekend one is always there, so it takes the
+   ;; lower step (mono1, the subtle plane over content) and the two moving
+   ;; ones take the step above it (mono2, which the ramp roles above give to
+   ;; alt-subtle highlights).  Without the gap, a Saturday would swallow the
+   ;; current-time column on two days in seven.  dim0/dim1 are not candidates
+   ;; here even though they would sit lower still: those levels mean "this
+   ;; window is not the selected one" wherever solaire-mode or
+   ;; auto-dim-other-buffers is on, and a weekend is not that.
+   `(org-dayflow-weekend-column-face ((,class (:background ,mono1 :extend t))))
    `(org-dayflow-weekend-face ((,class (:foreground ,mono4 :weight bold))))
    `(org-dayflow-weekday-face ((,class (:foreground ,mono5))))
    `(org-dayflow-units-face ((,class (:foreground ,mono5))))
    `(org-dayflow-label-face ((,class (:foreground ,mono5))))
    `(org-dayflow-query-face ((,class (:inherit org-agenda-structure))))
-   `(org-dayflow-now-column-face ((,class (:background ,mono1 :extend t))))
-   `(org-dayflow-cursor-column-face ((,class (:background ,mono1 :extend t))))
+   `(org-dayflow-now-column-face ((,class (:background ,mono2 :extend t))))
+   `(org-dayflow-cursor-column-face ((,class (:background ,mono2 :extend t))))
    `(org-dayflow-now-unit-face ((,class (:inherit calendar-today))))
    `(org-dayflow-cursor-unit-face ((,class (:inherit org-date-selected))))
    `(org-dayflow-title-done-face ((,class (:inherit org-headline-done :strike-through t))))
