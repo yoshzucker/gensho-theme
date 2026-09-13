@@ -1006,8 +1006,19 @@ included in the 16-color export."
    `(org-document-info ((,class (:foreground ,mono6))))
 
    ;; TODO / DONE
-   `(org-todo ((,class (:foreground ,mono0 :background ,red))))
-   `(org-done ((,class (:foreground ,mono0 :background ,green))))
+   ;; The colours are the way round they are drawn *from*, not the way round
+   ;; they appear: `:inverse-video' swaps them at draw time, so the badge is
+   ;; a red field with page-coloured text as before.
+   ;;
+   ;; Written this way so a highlighted line cannot take the badge off.  An
+   ;; overlay's face outranks the text's -- always, whatever its priority --
+   ;; but it outranks it attribute by attribute, and `hl-line' sets only a
+   ;; background.  With the red in `:background' the band replaced it and the
+   ;; keyword went page-colour on panel-colour, which is not a duller badge
+   ;; but an invisible word.  In `:foreground' the band cannot reach it: all
+   ;; that moves is the glyph, one step along the mono ramp.
+   `(org-todo ((,class (:foreground ,red :background ,mono0 :inverse-video t))))
+   `(org-done ((,class (:foreground ,green :background ,mono0 :inverse-video t))))
    `(org-headline-todo ((,class (:foreground ,mono7))))
    `(org-headline-done ((,class (:inherit font-lock-comment-face))))
    `(org-archived ((,class (:inherit org-headline-done))))
