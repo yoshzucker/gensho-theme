@@ -128,14 +128,20 @@ For terminal emulators that want a 16-color palette, use the values from `gensho
 
 Gensho emphasizes a quiet, layered stone aesthetic ("玄昌石") primarily through
 careful assignment of the mono ramp to UI elements rather than heavy borders or
-color. The low end of the ramp says one thing only — how current a surface is:
+color. Three of the four low levels are one axis — how current a surface is —
+and the fourth is a place rather than a state:
 
 | level   | role |
 |---------|------|
 | `mono0` | what is current inside the content: the line point is on, the region, the hunk you are reading |
-| `mono1` | the content surface, and the figure of an active bar (current tab, mode line, header line) |
+| `mono1` | the content surface, and the figure of an active bar (current tab, mode line) |
 | `mono2` | what is not current: inactive bars, unselected tabs, other matches, dimmed panels |
-| `mono3` | the ground a bar is drawn on: tab-bar and tab-line fields, tooltips, child-frame rims |
+| `mono3` | what frames or labels content rather than being content: tab-bar and tab-line fields, the header line, tooltips, child-frame rims, column titles, table and hunk headings |
+
+A bar can appear on either side of that split. `tab-bar` is a `mono3` field
+carrying `mono1`/`mono2` tabs; the mode line is a figure with no field of its
+own; the header line is a field with no figure, since a window has exactly one
+and there is no active or inactive about it.
 
 Key choices for "slate feel":
 

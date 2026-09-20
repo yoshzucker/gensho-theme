@@ -289,21 +289,29 @@ the selected window\", which a terminal has no notion of."
   ;;   mono1  the content surface itself, with its fringe, line numbers, the
   ;;          frame's internal border and the dividers between windows, which
   ;;          stay flush so that no seam fights the planes.  The figure of an
-  ;;          active bar sits here too -- the selected tab, the mode line and
-  ;;          the header line of the window you are in -- so the working
-  ;;          surface is continuous from the tab down into the text.
+  ;;          active bar sits here too -- the selected tab and the mode line
+  ;;          of the window you are in -- so the working surface is continuous
+  ;;          from the tab down into the text.
   ;;   mono2  what is not current -- the inactive mode line, unselected tabs,
   ;;          the other search matches, the secondary selection, diff lines
   ;;          outside the hunk point is in, a dimmed panel.  It is also the
   ;;          plane a buffer alternates onto when it has to band its own
   ;;          content, as an expanded dired subtree or a weekend column does.
-  ;;   mono3  the ground a bar is drawn on -- tab-bar and tab-line fields,
-  ;;          tooltips and child-frame rims, column and table headers.
+  ;;   mono3  what frames or labels content rather than being content --
+  ;;          tab-bar and tab-line fields, the header line, tooltips and
+  ;;          child-frame rims, column titles, table and hunk headings.
   ;;
-  ;; Reading the four as one order is what makes the bars symmetric: tab-bar
-  ;; and tab-line both lie on mono3 with the current tab at mono1 and the rest
-  ;; at mono2, and the mode line follows the same pair without a ground of its
-  ;; own.
+  ;; The first three are one axis, how current a surface is.  mono3 is not on
+  ;; it: it is a place rather than a state.  Which is why a bar can show up on
+  ;; both -- tab-bar is a mono3 field carrying mono1/mono2 tabs, the mode line
+  ;; is a figure with no field of its own, and the header line a field with no
+  ;; figure, since one window has exactly one and there is no active or
+  ;; inactive about it.
+  ;;
+  ;; Reading the state axis as one order is what makes the bars symmetric:
+  ;; tab-bar and tab-line both lie on mono3 with the current tab at mono1 and
+  ;; the rest at mono2, and the mode line follows the same pair without a
+  ;; ground of its own.
   ;;
   ;; For non-selected windows and unreal buffers, solaire-mode and
   ;; auto-dim-other-buffers-mode take dim0, a dedicated level that shifts
@@ -387,9 +395,11 @@ the selected window\", which a terminal has no notion of."
   ;; enabled -- the principle applies to the static palette geometry.
   ;;
   ;; This theme commits to fully sunken for chrome: `mode-line',
-  ;; `header-line', `tab-bar-tab' and `tab-line-tab-current' bg =
-  ;; mono1, flush with the content surface, while everything inactive
-  ;; rises to mono2 and the bars' own ground sits at mono3.  Gensho
+  ;; `tab-bar-tab' and `tab-line-tab-current' bg = mono1, flush with
+  ;; the content surface, while everything inactive rises to mono2 and
+  ;; the bars' own ground sits at mono3.  `header-line' is on that
+  ;; ground rather than in the pair, having no active or inactive to
+  ;; tell apart.  Gensho
   ;; dims toward fg in both variants, so sunken keeps every active
   ;; element on one stratum and lets the dimmed windows and the
   ;; inactive bars rise together.  Among surveyed themes the closest
@@ -779,9 +789,12 @@ the selected window\", which a terminal has no notion of."
    ;;   text -- the 玄昌石 slate recess.
    ;; - The other tabs rise to mono2 with dimmer fg, the same level every
    ;;   other idle surface takes.
-   ;; - mode-line and header-line follow the same pair, mono1 active and
-   ;;   mono2 inactive, without a ground of their own: one bar, so there
-   ;;   is no field for it to sit on.
+   ;; - mode-line follows the same pair, mono1 active and mono2 inactive,
+   ;;   without a ground of its own: one bar, so there is no field for it to
+   ;;   sit on.
+   ;; - header-line is the other way round -- a field with no figure.  One
+   ;;   window has exactly one, with no active or inactive to tell apart, so
+   ;;   it sits on mono3 with the other things that label content.
    `(mode-line ((,class (:foreground ,mono7 :background ,mono1))))
    ;; mode-line-inactive at mono2 -- the idle reference plane shared with
    ;; `tab-bar-tab-inactive' and `tab-line-tab-inactive', one step toward
@@ -794,7 +807,7 @@ the selected window\", which a terminal has no notion of."
    ;; defface flat box on mouse-over with a plane shift (inherit `highlight'),
    ;; matching the "no boxes; bg-plane carries affordance" attribute policy.
    `(mode-line-highlight ((,class (:inherit highlight))))
-   `(header-line ((,class (:foreground ,mono6 :background ,mono1))))
+   `(header-line ((,class (:foreground ,mono7 :background ,mono3))))
    `(tab-bar ((,class (:foreground ,mono7 :background ,mono3))))
    `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono1))))
    ;; Inactive tabs sit below the bar's own ground (mono3) at mono2, the
@@ -838,7 +851,9 @@ the selected window\", which a terminal has no notion of."
    ;; child-frame-border keeps popups framed consistently with other chrome.
    `(line-number ((,class (:foreground ,mono4 :background ,mono1))))
    `(line-number-current-line ((,class (:foreground ,mono6 :background ,mono0 :weight bold))))
-   `(line-number-major-tick ((,class (:foreground ,mono3 :background ,mono1 :weight bold))))
+   ;; The major tick has to read as more than the minor one, so it takes the
+   ;; step above it rather than a level from the background half of the ramp.
+   `(line-number-major-tick ((,class (:foreground ,mono5 :background ,mono1 :weight bold))))
    `(line-number-minor-tick ((,class (:foreground ,mono4 :background ,mono1))))
    `(window-divider ((,class (:foreground ,mono1))))
    `(window-divider-first-pixel ((,class (:foreground ,mono2))))
@@ -859,7 +874,11 @@ the selected window\", which a terminal has no notion of."
 
    ;; --- Search, jump, isearch (interactive highlights) ---
    `(isearch ((,class (:foreground ,mono0 :background ,orange))))
-   `(lazy-highlight ((,class (:foreground ,mono0 :background ,mono2))))
+   ;; The other matches take mono2, the idle plane, since only the one point
+   ;; is on is current.  mono0 is the knockout color for a saturated fill and
+   ;; has no business on a grey one: against mono2 it is a step and a half of
+   ;; the ramp, which is not enough to read a word through.
+   `(lazy-highlight ((,class (:foreground ,mono7 :background ,mono2))))
    `(avy-lead-face ((,class (:foreground ,mono0 :background ,blue))))
    `(avy-lead-face-0 ((,class (:foreground ,mono0 :background ,orange))))
    `(avy-lead-face-1 ((,class (:foreground ,mono0 :background ,red))))
@@ -1113,7 +1132,10 @@ the selected window\", which a terminal has no notion of."
    ;; two steps of grey apart or a change of hue.
    `(org-foresight-report-booked ((,class (:foreground ,mono6))))
    `(org-foresight-report-travel ((,class (:foreground ,mono4))))
-   `(org-foresight-report-promised ((,class (:foreground ,mono2))))
+   ;; The quietest the ramp goes and still be text: mono4, shared with the
+   ;; other faint markers.  Below that is the background half, where a word
+   ;; cannot be read.
+   `(org-foresight-report-promised ((,class (:foreground ,mono4))))
    `(org-foresight-report-spare ((,class (:foreground ,blue))))
    ;; Emptiness, wherever it is drawn: the same dot in the bar and in the
    ;; sparkline, so two identical characters stop looking like two sizes.
