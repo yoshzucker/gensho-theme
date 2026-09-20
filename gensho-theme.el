@@ -24,7 +24,7 @@
 ;;     (load-theme 'gensho t))
 ;;
 ;; Programmatic palette access:
-;;   (gensho-palette)        ; internal semantic keys (mono0-7 + 8 hues)
+;;   (gensho-palette)        ; internal semantic keys (mono0-7, dim0-1, 8 hues)
 ;;   (gensho-export-palette 'json 'wet)  ; ANSI/terminal names for external tools
 ;;
 ;; Display compensation:
@@ -58,24 +58,24 @@
 ;; applicable to any theme) and gensho-specific (PCCS 類似色相配色 cool
 ;; dominant + limited 中差/対照 warm seasonal cluster + なじみ原理 for
 ;; rotenburo reflections on cool stone bg h~200; not pure geometric)
-;; strategy.  Base now uses s=55 (微増 after additional de-facto-respecting
-;; freq reductions in minibuffer/org/dired to address clutter/noise in
-;; completion, rich org buffers, and file info like permissions) + l slightly
-;; below fg; if frequency is further reduced, s (and optionally l) can
-;; increase for more vividness while preserving stone dominance.  Current h
+;; strategy.  The base is s=55, which the low accent frequency in
+;; minibuffer/org/dired affords (completion, rich org buffers, and file info
+;; like permissions), plus l slightly below fg; if frequency is reduced
+;; further, s (and optionally l) can increase for more vividness while
+;; preserving stone dominance.  Current h
 ;; chosen for natural "映り込む" elements (petals, momiji, light, sky) +
 ;; de-facto semantics. Additional reductions (e.g. orderless to cool cluster,
 ;; dired-perm-write to mono4) keep core semantics intact.
 (defconst gensho-dry-hsl
-  '((mono0   . (200   5  26))
-    (dim0    . (200   5  28))   ; dedicated dim level for non-selected (weaker than mono1 aux)
+  '((mono0   . (200   5  19))
+    (mono1   . (200   5  26))
+    (dim0    . (200   5  28))   ; dedicated dim levels for non-selected/unreal areas
     (dim1    . (200   5  30))
-    (mono1   . (200   5  32))
-    (mono2   . (200   5  38))
-    (mono3   . (200   5  44))
-    (mono4   . (200   5  50))
-    (mono5   . (200   5  56))
-    (mono6   . (200   5  62))
+    (mono2   . (200   5  33))
+    (mono3   . (200   5  40))
+    (mono4   . (200   5  47))
+    (mono5   . (200   5  54))
+    (mono6   . (200   5  61))
     (mono7   . (200   5  68))
     (red     . (  0  55  57))
     (orange  . ( 30  55  57))
@@ -87,15 +87,15 @@
     (magenta . (325  55  57))))
 
 (defconst gensho-wet-hsl
-  '((mono0   . (200   5  16))
-    (dim0    . (200   5  18))   ; dedicated dim level for non-selected (weaker than mono1 aux)
+  '((mono0   . (200   5   9))
+    (mono1   . (200   5  16))
+    (dim0    . (200   5  18))   ; dedicated dim levels for non-selected/unreal areas
     (dim1    . (200   5  20))
-    (mono1   . (200   5  22))
-    (mono2   . (200   5  28))
-    (mono3   . (200   5  34))
-    (mono4   . (200   5  40))
-    (mono5   . (200   5  46))
-    (mono6   . (200   5  52))
+    (mono2   . (200   5  23))
+    (mono3   . (200   5  30))
+    (mono4   . (200   5  37))
+    (mono5   . (200   5  44))
+    (mono6   . (200   5  51))
     (mono7   . (200   5  58))
     (red     . (  0  55  57))
     (orange  . ( 30  55  57))
@@ -110,10 +110,10 @@
   "HSLuv deltas (h s l) added to every base color before hex conversion.
 
 Intended to compensate for display characteristic differences (e.g.
-perceived darkness of the wet variant mono0 background on some
+perceived darkness of the wet variant's mono1 background on some
 setups vs. others).  The correction is applied uniformly and
-linearly in HSLuv space to all 16 palette entries (mono0-7 and the
-8 hues) for both wet and dry variants.
+linearly in HSLuv space to every palette entry (mono0-7, dim0-1 and
+the 8 hues) for both wet and dry variants.
 
 Because the relationship between HSLuv values and actual display
 response may not be perfectly linear, a single set of deltas is a
@@ -176,21 +176,21 @@ Computed from `gensho-wet-hsl' + `gensho-hsl-correction'.")
 VARIANT is `wet' or `dry' (defaults from `frame-background-mode').
 
 The alist uses the theme's internal semantic palette keys:
-  mono0..mono7  (perceptual gray ramp for main content; mono0 is background,
-                 mono7 foreground for the chosen variant; de-facto roles:
-                 mono1 for subtle selection/highlight on main, etc.)
-  dim0, dim1    (dedicated dim levels between mono0 and mono1, for the base
-                 background of non-selected/unreal areas when using the
-                 supported modes auto-dim-other-buffers-mode or solaire-mode.
-                 Allows weaker dim than the standard aux step at mono1 while
-                 preserving the 8-step mono semantics for content.)
+  mono0..mono7  (perceptual gray ramp; mono1 is the background and mono7 the
+                 foreground for the chosen variant.  mono0 lies outside mono1,
+                 away from fg, and carries what is current inside the content;
+                 mono2 carries what is not current; mono3 is the ground a bar
+                 is drawn on.)
+  dim0, dim1    (dedicated dim levels for the base background of
+                 non-selected/unreal areas when using the supported modes
+                 auto-dim-other-buffers-mode or solaire-mode.  They give a
+                 weaker shift than a full step of the main ramp.)
   red orange yellow green cyan blue purple magenta  (accent hues)
 
 The returned colors respect `gensho-hsl-correction' (if non-zero).
 For external tools / terminal emulators prefer `gensho-export-palette',
 which maps to conventional ANSI/terminal color names (background, black,
-brightblack, ...). The dim* levels are internal to Emacs UI and not
-included in the 16-color export."
+brightblack, ...).  dim1 has no slot there."
   (let ((v (or variant
                (if (eq frame-background-mode 'light) 'dry 'wet))))
     (if (eq v 'dry) gensho-dry gensho-wet)))
@@ -246,11 +246,10 @@ included in the 16-color export."
   ;;     step ~1 (next):   subtle backgrounds for selection, current item,
   ;;                       highlights, matching regions, etc. (the standard
   ;;                       de-facto aux step on main content).
-  ;;                       Dedicated dim levels (dim0/dim1, between mono0 and
-  ;;                       this step) are provided for the supported modes'
-  ;;                       non-selected/unreal faces, so dim can be weaker than
-  ;;                       the main aux while preserving the 8-step semantics
-  ;;                       for content.
+  ;;                       Dedicated dim levels (dim0/dim1) are provided for
+  ;;                       the supported modes' non-selected/unreal faces, so
+  ;;                       dim can be weaker than the main aux while
+  ;;                       preserving the 8-step semantics for content.
   ;;     step ~2-3:        alt / medium subtle (active chrome bg, some
   ;;                       highlights).
   ;;     step ~4 (mid-low): faint / secondary (shadow, doc-face, low-
@@ -265,35 +264,51 @@ included in the 16-color export."
   ;;   (The exact numbering and lightness deltas are implementation
   ;;   details; the *role assignment to the 8 levels* is the survey-derived
   ;;   universal pattern.)
+  ;;   Gensho departs from the survey at the two lowest steps: it seats the
+  ;;   background at mono1, one step in from the end, and spends mono0 on
+  ;;   what is current inside the content, so a highlight recesses instead
+  ;;   of rising.  The survey's ha-ha themes already recess chrome this way;
+  ;;   gensho leaves chrome sunken and recesses the content marks instead.
   ;; - The overall derived principle: the gray ramp layers supply the primary
   ;;   visual rhythm; color is used as accent on top of this foundation.
 
   ;; Slate texture extension (gensho-specific application of the above):
-  ;; To evoke 玄昌石 (layered, quiet stone) despite Emacs' sparse chrome,
-  ;; we deliberately map UI structural elements to adjacent ramp steps.
-  ;; The main content plane is at mono0. Explicit auxiliary panels (such as
-  ;; the treemacs sidebar) use the next step (mono1) via their dedicated faces
-  ;; for a subtle layered "stone slab" effect.
+  ;; To evoke 玄昌石 (layered, quiet stone) despite Emacs' sparse chrome, every
+  ;; surface in the frame is placed on the low end of the ramp, and the depth
+  ;; is allowed to say one thing only: how current that surface is.  Anything
+  ;; that carries a meaning takes a hue instead, so a single step never has to
+  ;; say "you are here" and "this is idle" at the same time.
   ;;
-  ;; For the divider between such a panel and the main content, we set it to
-  ;; the main content color (mono0). This produces a clean transition without
-  ;; a visible seam line that would fight the plane expression — the
-  ;; distinction comes from the tone difference (where present) and the
-  ;; content itself. This choice was confirmed to give good slate feel after
-  ;; direct testing.
+  ;;   mono0  what is current inside the content -- the line point is on,
+  ;;          the region, the hunk you are reading, the candidate you are on.
+  ;;          It lies outside mono1, away from fg: a recess, not a rise.
+  ;;          No other background takes it, so a mark never collides with a
+  ;;          state.  It doubles as the knockout text color on saturated
+  ;;          fills, where what reads is simply the far end of the ramp.
+  ;;   mono1  the content surface itself, with its fringe, line numbers, the
+  ;;          frame's internal border and the dividers between windows, which
+  ;;          stay flush so that no seam fights the planes.  The figure of an
+  ;;          active bar sits here too -- the selected tab, the mode line and
+  ;;          the header line of the window you are in -- so the working
+  ;;          surface is continuous from the tab down into the text.
+  ;;   mono2  what is not current -- the inactive mode line, unselected tabs,
+  ;;          the other search matches, the secondary selection, diff lines
+  ;;          outside the hunk point is in, a dimmed panel.  It is also the
+  ;;          plane a buffer alternates onto when it has to band its own
+  ;;          content, as an expanded dired subtree or a weekend column does.
+  ;;   mono3  the ground a bar is drawn on -- tab-bar and tab-line fields,
+  ;;          tooltips and child-frame rims, column and table headers.
   ;;
-  ;; We keep normal editing buffers on the main mono0 plane. The main de-facto
-  ;; signal for non-active windows is `mode-line-inactive` (set to mono1 here,
-  ;; providing a gentle auxiliary-layer treatment at the chrome level).
-  ;; For users who want a global subtle shift for non-selected windows
-  ;; or unreal buffers, we provide explicit face support for the two de-facto
-  ;; modes that can use exact palette colors without inventing new ones:
-  ;; solaire-mode (for "unreal" buffers) and auto-dim-other-buffers-mode (for
-  ;; non-selected windows). Their dim faces are set to dim0 (a dedicated level
-  ;; between mono0 and the standard aux mono1), so enabling the mode gives a
-  ;; weaker aux tone while preserving the full de-facto role assignment for
-  ;; the main 8 levels (subtle at mono1 etc.) on content. dim1 is also
-  ;; available for customization.
+  ;; Reading the four as one order is what makes the bars symmetric: tab-bar
+  ;; and tab-line both lie on mono3 with the current tab at mono1 and the rest
+  ;; at mono2, and the mode line follows the same pair without a ground of its
+  ;; own.
+  ;;
+  ;; For non-selected windows and unreal buffers, solaire-mode and
+  ;; auto-dim-other-buffers-mode take dim0, a dedicated level that shifts
+  ;; mono1 by less than a full step of the main ramp, so a dimmed window reads
+  ;; as not current without taking mono2 outright.  dim1 is a second
+  ;; such level, available for customization.
   ;;
   ;; Chrome direction -- walled / sunken / ha-ha
   ;; (garden architecture metaphor)
@@ -327,10 +342,11 @@ included in the 16-color export."
   ;;
   ;; Whether a theme can express all three patterns depends on its
   ;; palette geometry: if body bg sits at an extreme of the ramp
-  ;; (e.g. pure white in Modus operandi, pure black in Modus vivendi,
-  ;; or the darkest entry like gensho's mono0), the anti-fg direction
-  ;; has no palette room, so ha-ha is not available -- only walled
-  ;; or sunken.
+  ;; (e.g. pure white in Modus operandi, pure black in Modus
+  ;; vivendi), the anti-fg direction has no palette room, so ha-ha is
+  ;; not available -- only walled or sunken.  Gensho seats its background
+  ;; at mono1 and keeps mono0 outside it, which leaves that direction open;
+  ;; it spends it on content marks rather than on chrome.
   ;;
   ;; Survey (source inspection, body-distance + fg-direction analysis):
   ;;
@@ -354,33 +370,38 @@ included in the 16-color export."
   ;; auto-dim-other-buffers, or any equivalent mode), and whether
   ;; that direction is toward fg or anti-fg:
   ;;
-  ;;   - dim toward fg (gensho's wet/dry both: mono0 -> dim0 brighter,
+  ;;   - dim toward fg (gensho's wet/dry both: dim0 is brighter than bg,
   ;;     which is the fg direction since gensho has fg > bg):
-  ;;     sunken keeps all "active" elements (body, mode-line, selected
-  ;;     tab) at the same body-bg stratum, with dim'd bodies and
-  ;;     inactive chrome rising slightly toward fg as a coherent unit.
-  ;;     Walled or ha-ha would split "active" across strata.
+  ;;     sunken keeps every active element on the content stratum,
+  ;;     with dimmed windows and inactive chrome rising toward fg as a
+  ;;     coherent unit.  Walled or ha-ha would split "active" across
+  ;;     strata.
   ;;
-  ;;   - dim anti-fg: active body sits on the fg side of dim'd body.
-  ;;     Walled or ha-ha (active chrome aligned with active body)
-  ;;     would keep "active" coherent; sunken would split it.
+  ;;   - dim anti-fg: the active surface sits on the fg side of a
+  ;;     dimmed one.  Walled or ha-ha, which align active chrome with
+  ;;     the active surface, would keep "active" coherent; sunken
+  ;;     would split it.
   ;;
   ;; This is orthogonal to whether any dimming mode is actually
   ;; enabled -- the principle applies to the static palette geometry.
   ;;
-  ;; This theme commits to fully sunken: `mode-line', `tab-bar-tab'
-  ;; and `tab-line-tab-current' bg = mono0 (= active body).  The
-  ;; active window's chrome is visually flush with the editing
-  ;; surface; the inactive window gets a visible mono1 bar.  Among
-  ;; surveyed themes, the closest match is Doom one light (also
-  ;; fully sunken).
+  ;; This theme commits to fully sunken for chrome: `mode-line',
+  ;; `header-line', `tab-bar-tab' and `tab-line-tab-current' bg =
+  ;; mono1, flush with the content surface, while everything inactive
+  ;; rises to mono2 and the bars' own ground sits at mono3.  Gensho
+  ;; dims toward fg in both variants, so sunken keeps every active
+  ;; element on one stratum and lets the dimmed windows and the
+  ;; inactive bars rise together.  Among surveyed themes the closest
+  ;; match is Doom one light.
   ;;
-  ;; Gensho commits to fully sunken because its dim direction is
-  ;; "toward fg" in both variants (mono0 -> dim0 brighter, which is
-  ;; the fg direction since gensho has fg > bg in both wet and dry).
-  ;; Sunken keeps all "active" elements bottoming out at one stratum.
-  ;; Aesthetically, the body-level chrome evokes the 玄昌石 (Genshō
-  ;; stone) slate recess.
+  ;; What gensho does differently is below that stratum rather than
+  ;; around it.  The survey's ha-ha themes put chrome in the recess;
+  ;; gensho leaves chrome sunken and gives the recess to content --
+  ;; mono0 carries the highlight, the region, the current hunk.  The
+  ;; garden floor stays the floor, and what you are pointing at is cut
+  ;; into it, which is the 玄昌石 (Genshō stone) form the theme is
+  ;; named for.  It is available for the same reason ha-ha would be:
+  ;; the content surface sits at mono1, not at the end of the ramp.
 
   ;; Accent colors (hues)
   ;;
@@ -402,15 +423,13 @@ included in the 16-color export."
   ;;      8 warm (orange, saddle brown, yellow-green, khaki -- tango,
   ;;      dichromacy, tsdh, wheatgrass, wombat, misterioso), 4 green, 3
   ;;      blue/cyan (adwaita, solarized, modus), 1 magenta.  None grey.
-  ;;      This role was the one missing from the list above, and a role with
-  ;;      no entry fell through to the mono ramp: `font-lock-variable-name-
-  ;;      face' sat at step 6 on the reading that identifiers are the most
-  ;;      frequent text and should not shout.  That reading is a real
-  ;;      minority school, but it belongs to themes that leave *every*
-  ;;      identifier-ish face uncoloured; here it made one face of eight an
-  ;;      outlier -- and `outline-2' inherits this face by Emacs' own default
-  ;;      (outline.el), so every level-two heading in Org came out at step 6,
-  ;;      dimmer than the body text under it.
+  ;;      The alternative is to leave the role on the mono ramp, on the
+  ;;      reading that identifiers are the most frequent text and should not
+  ;;      shout.  That is a real minority school, but it belongs to themes
+  ;;      that leave *every* identifier-ish face uncoloured; here it would
+  ;;      make one face of eight an outlier -- and `outline-2' inherits this
+  ;;      face by Emacs' own default (outline.el), so every level-two heading
+  ;;      in Org would come out dimmer than the body text under it.
   ;;    - Errors: red (near-universal); success/DONE states: green.
   ;;
   ;; B. Strategies for choosing specific hues against a tinted background
@@ -518,19 +537,18 @@ included in the 16-color export."
   ;; reflections) + de-facto semantic pattern", not a single 2-color
   ;; hue-diff or pure geometric.
   ;;
-  ;; Current concrete: s=55 (微増 from 50, after additional freq reductions
-  ;; for clutter/noise in minibuffer/org/dired while respecting de facto),
-  ;; l slightly below mono7 fg (49 dry / 57 wet) to keep gray-ramp
-  ;; dominance. Hues (see proposed refined below for naturalness):
+  ;; Concrete values: s=55, which the low accent frequency in
+  ;; minibuffer/org/dired affords, and l=57 in both variants -- below the
+  ;; mono7 fg (68 dry / 58 wet) to keep gray-ramp dominance.  Hues:
   ;; red 0, orange 30, yellow 55, green 130, cyan 202 (bg anchor),
   ;; blue 242, purple 280, magenta 325.
   ;; Additional reductions (within de facto scope):
-  ;; - minibuffer: orderless-match 4 faces now use cool cluster (cyan/blue/
-  ;;   purple/magenta) instead of warm-pop (orange etc.) to reduce "ガチャガチャ";
-  ;;   tooltip bg uses mono2 (neutral chrome plane per minimalist tooltip
+  ;; - minibuffer: orderless-match's 4 faces take the cool cluster (cyan/
+  ;;   blue/purple/magenta) rather than a warm pop, to reduce "ガチャガチャ";
+  ;;   tooltip bg uses mono3 (neutral chrome plane per minimalist tooltip
   ;;   pattern -- Doom, Catppuccin -- not a colored cluster member).
-  ;; - org: table/habit-overdue/agenda-current-time/document-title/date
-  ;;   shifted to mono/low to reduce "うるさい" colored text (core todo/done
+  ;; - org: table/habit-overdue/agenda-current-time/document-title/date sit
+  ;;   on mono/low to keep "うるさい" colored text down (core todo/done
   ;;   status kept as de facto).
   ;; - dired: dired-perm-write at mono4 (low-key for permissions; intra-mono
   ;;   underline retired per the decoration policy below to align with the
@@ -647,8 +665,8 @@ included in the 16-color export."
   ;;       branch among a list of branches).
   ;;     - `magit-blame-heading' (sized box frames the blame line).
   ;;   Otherwise, gensho carries affordance via the bg plane (e.g.
-  ;;   `help-key-binding' renders the key chip as a `mono2' fill on the
-  ;;   `mono0' body plane -- the step is enough, no box is added).
+  ;;   `help-key-binding' renders the key chip as a `mono3' fill on the
+  ;;   `mono1' plane -- the step is enough, no box is added).
   ;;   No `:style released-button' anywhere (fights slate flat).
   ;;
   ;; :slant italic
@@ -705,43 +723,37 @@ included in the 16-color export."
    ;; Enabling the modes is the user's choice; gensho only provides the
    ;; face wiring here.
    `(solaire-default-face ((,class (:background ,dim0))))
-   `(solaire-hl-line-face ((,class (:background ,mono1))))
-   `(solaire-region-face ((,class (:background ,mono1 :extend t))))
+   `(solaire-hl-line-face ((,class (:background ,mono0))))
+   `(solaire-region-face ((,class (:background ,mono0 :extend t))))
    `(auto-dim-other-buffers ((,class (:background ,dim0))))
    `(auto-dim-other-buffers-hide ((,class (:foreground ,dim0 :background ,dim0))))
 
    ;; --- Core primitives ---
-   `(default ((,class (:foreground ,mono7 :background ,mono0))))
+   `(default ((,class (:foreground ,mono7 :background ,mono1))))
    `(cursor ((,class (:background ,mono6))))
-   `(fringe ((,class (:background ,mono0))))
-   `(border ((,class (:background ,mono0))))
-   `(internal-border ((,class (:background ,mono0))))
-   ;; Divider between windows. To achieve a clean slate feel (as preferred after
-   ;; testing), we set the divider to the main content color (mono0). This
-   ;; removes any visible seam line artifact between a differentiated side panel
-   ;; (e.g. treemacs at mono1) and the main editor (mono0). The distinction
-   ;; between areas is then expressed purely by the bg tone difference (where
-   ;; used) + the content itself (tree structure vs code, icons, etc.) and
-   ;; window geometry.
-   ;;
-   ;; This is a common de-facto approach for quiet, layered "stone" looks: avoid
-   ;; a contrasting border line that fights the plane expression. Regular
-   ;; content-to-content splits can still get subtle separation when
-   ;; window-divider-mode is enabled (see the Gutter section below).
-   ;;
-   ;; Note on treemacs mono1: The step from main mono0 to mono1 is the standard
-   ;; first auxiliary step (panels use this; the even weaker dim0/dim1 are for
-   ;; the modes' non-selected content). If it feels too strong compared to the
-   ;; main bg, you can override `treemacs-window-background-face` to mono0 in
-   ;; your personal config; the panel character will come from its distinct
-   ;; content, hl-line, and the clean divider treatment.
-   `(vertical-border ((,class (:foreground ,mono0))))
-   `(region ((,class (:background ,mono1))))
+   `(fringe ((,class (:background ,mono1))))
+   `(border ((,class (:background ,mono1))))
+   `(internal-border ((,class (:background ,mono1))))
+   ;; Divider between windows, set to mono1 so that no seam
+   ;; line appears between a differentiated side panel (e.g. treemacs at mono2)
+   ;; and the main editor. Areas are then told apart by their bg tone and their
+   ;; content -- tree structure vs code, icons -- and by window geometry, which
+   ;; is the common approach for quiet layered "stone" looks: a contrasting
+   ;; border line fights the plane expression. Regular content-to-content
+   ;; splits can still get subtle separation from window-divider-mode (see the
+   ;; Gutter section below).
+   `(vertical-border ((,class (:foreground ,mono1))))
+   `(region ((,class (:background ,mono0))))
    `(secondary-selection ((,class (:background ,mono2))))
-   `(highlight ((,class (:background ,mono1))))
+   `(highlight ((,class (:background ,mono0))))
    `(shadow ((,class (:foreground ,mono4))))
    `(match ((,class (:foreground ,mono0 :background ,green))))
-   `(show-paren-match ((,class (:background ,mono1 :weight bold))))
+   ;; The partner delimiter is marked by weight and the far end of the ramp
+   ;; alone.  A plane would be too much for two characters, and a hue is not
+   ;; available: every one of the eight is already a font-lock category, so a
+   ;; colored paren would read as a variable or a type in the one buffer where
+   ;; paren matching matters.
+   `(show-paren-match ((,class (:foreground ,mono7 :weight bold))))
    `(link ((,class (:foreground ,blue :underline t))))
    `(link-visited ((,class (:foreground ,purple :underline t))))
    `(error ((,class (:foreground ,red :weight bold))))
@@ -754,52 +766,47 @@ included in the 16-color export."
    ;; is monospaced.  A tooltip carries key bindings, signatures and paths --
    ;; the sort of text that is read by its columns -- so it takes the fixed
    ;; face like the rest of the frame.
-   `(tooltip ((,class (:foreground ,mono7 :background ,mono2 :inherit fixed-pitch))))
-   `(help-key-binding ((,class (:foreground ,mono7 :background ,mono2 :inherit fixed-pitch))))
+   `(tooltip ((,class (:foreground ,mono7 :background ,mono3 :inherit fixed-pitch))))
+   `(help-key-binding ((,class (:foreground ,mono7 :background ,mono3 :inherit fixed-pitch))))
 
    ;; --- Modeline, header-line, tab-bar, tab-line (UI chrome) ---
    ;; Per-face level assignments (the "Chrome direction" notes in the
-   ;; mono ramp design above explain why sunken):
-   ;; - tab-bar bg at mono2 (toolbar/frame chrome layer).
-   ;; - Selected tab bg = mono0 (flushes with buffer default bg), so the
-   ;;   active view surface is continuous from the tab "lid" down into
-   ;;   the content -- the 玄昌石 slate recess.
-   ;; - Inactive tabs sit on the bar (mono1) with dimmer fg for clear
-   ;;   but quiet distinction.
-   ;; - tab-line (per-window) follows the same logic but slightly more
-   ;;   content-adjacent (bar at mono1 since it lives closer to buffer).
-   ;; - mode-line uses mono0 (active = body level) and mono1 (inactive),
-   ;;   matching tab-bar's sunken direction.  The active mode-line is
-   ;;   visually flush with the editing surface (no bar separator);
-   ;;   the inactive mode-line is the one that appears as a visible bar
-   ;;   (mono1).
-   `(mode-line ((,class (:foreground ,mono7 :background ,mono0))))
-   ;; mode-line-inactive at mono1 -- the inactive chrome reference plane
-   ;; shared with `tab-bar-tab-inactive' and `tab-line-tab-inactive', one
-   ;; step above the deepest body stratum.  This level is invariant under
-   ;; the walled / sunken / ha-ha choice for the active mode-line (see
-   ;; "Chrome direction" notes in the mono ramp design above).
-   `(mode-line-inactive ((,class (:foreground ,mono6 :background ,mono1))))
+   ;; mono ramp design above explain why ha-ha):
+   ;; - tab-bar and tab-line are drawn on the outer ground, mono3.
+   ;; - The current tab is mono1, flush with the content surface, so the
+   ;;   view you are in is continuous from the tab "lid" down into the
+   ;;   text -- the 玄昌石 slate recess.
+   ;; - The other tabs rise to mono2 with dimmer fg, the same level every
+   ;;   other idle surface takes.
+   ;; - mode-line and header-line follow the same pair, mono1 active and
+   ;;   mono2 inactive, without a ground of their own: one bar, so there
+   ;;   is no field for it to sit on.
+   `(mode-line ((,class (:foreground ,mono7 :background ,mono1))))
+   ;; mode-line-inactive at mono2 -- the idle reference plane shared with
+   ;; `tab-bar-tab-inactive' and `tab-line-tab-inactive', one step toward
+   ;; fg from mono1.  This level is invariant under the walled / sunken
+   ;; / ha-ha choice for the active mode-line (see "Chrome direction"
+   ;; notes in the mono ramp design above).
+   `(mode-line-inactive ((,class (:foreground ,mono6 :background ,mono2))))
    `(mode-line-buffer-id ((,class (:weight bold))))
    ;; mode-line-highlight: minimalist convention (Nord, Doom) -- replace the
    ;; defface flat box on mouse-over with a plane shift (inherit `highlight'),
    ;; matching the "no boxes; bg-plane carries affordance" attribute policy.
    `(mode-line-highlight ((,class (:inherit highlight))))
-   `(header-line ((,class (:foreground ,mono6 :background ,mono3))))
-   `(tab-bar ((,class (:foreground ,mono7 :background ,mono2))))
-   `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono0))))
-   ;; tab inactive tabs sit "below" the bar (mono2) using mono1. This is a
-   ;; chrome recess, not a content selection. Kept at mono1 for layer
-   ;; coherence even with the compressed low end.
-   `(tab-bar-tab-inactive ((,class (:foreground ,mono6 :background ,mono1))))
+   `(header-line ((,class (:foreground ,mono6 :background ,mono1))))
+   `(tab-bar ((,class (:foreground ,mono7 :background ,mono3))))
+   `(tab-bar-tab ((,class (:foreground ,mono7 :background ,mono1))))
+   ;; Inactive tabs sit below the bar's own ground (mono3) at mono2, the
+   ;; idle plane.  This is a chrome step, not a content selection.
+   `(tab-bar-tab-inactive ((,class (:foreground ,mono6 :background ,mono2))))
    `(tab-bar-tab-group-current ((,class (:inherit tab-bar-tab :weight bold))))
    `(tab-bar-tab-group-inactive ((,class (:inherit tab-bar-tab-inactive))))
-   ;; tab-line lives closer to content. Its bar bg at mono1 and inactive at
-   ;; mono1 are chrome-adjacent.
-   `(tab-line ((,class (:foreground ,mono7 :background ,mono1))))
-   `(tab-line-tab ((,class (:foreground ,mono6 :background ,mono1))))
-   `(tab-line-tab-current ((,class (:foreground ,mono7 :background ,mono0))))
-   `(tab-line-tab-inactive ((,class (:foreground ,mono5 :background ,mono1))))
+   ;; tab-line is per-window rather than per-frame, but it is still a bar,
+   ;; so it takes the same three levels as tab-bar.
+   `(tab-line ((,class (:foreground ,mono7 :background ,mono3))))
+   `(tab-line-tab ((,class (:foreground ,mono6 :background ,mono2))))
+   `(tab-line-tab-current ((,class (:foreground ,mono7 :background ,mono1))))
+   `(tab-line-tab-inactive ((,class (:foreground ,mono5 :background ,mono2))))
    `(tab-line-tab-modified ((,class (:inherit tab-line-tab-current :weight bold))))
 
    ;; --- Gutter, dividers, borders (additional vertical/horizontal layering) ---
@@ -807,53 +814,35 @@ included in the 16-color export."
    ;; decoration primitives, purely via mono ramp assignment.
    ;; Gutter (line numbers) acts as a vertical stone pillar on the left.
    ;;
-   ;; Divider choice for clean slate feel (updated per testing):
-   ;; Setting the divider to the main content color (mono0) produces the nicest
-   ;; layered stone look without a visible seam line artifact. When using a
-   ;; differentiated side panel (e.g. treemacs at mono1), the transition to the
-   ;; main mono0 editor is seamless — the panel stands out through its tone
-   ;; and content, not through an extra contrasting border.
+   ;; The divider takes mono1, which is what keeps the
+   ;; layered stone look free of a seam line: next to a differentiated side
+   ;; panel (e.g. treemacs at mono2) the transition is silent, and the panel
+   ;; stands out through its tone and content instead of an extra border.
+   ;; For regular content-to-content splits, `window-divider-mode' still gives
+   ;; a very gentle separation from close tones in the ramp; enable it with
+   ;; `(window-divider-mode 1)' plus the width variables.
    ;;
-   ;; This is a common de-facto approach for quiet, modern slate/dark themes:
-   ;; let the face (plane) tone difference and the content itself define areas,
-   ;; rather than relying on a bright divider line that can fight the "面の
-   ;; スレート" expression.
+   ;; Note on auxiliary panel contrast (treemacs etc.): the step from mono1
+   ;; to mono2 is the idle plane, which a panel shares with every other
+   ;; non-current surface.  If it feels too strong, override the panel face to
+   ;; mono1 -- content, hl-line and the divider still define the panel.
    ;;
-   ;; For regular content-to-content splits, enabling `window-divider-mode`
-   ;; can still give a very gentle separation using close tones in the ramp.
-   ;; Enable with `(window-divider-mode 1)` + the width variables.
-   ;;
-   ;; Note on auxiliary panel contrast (treemacs etc.):
-   ;; The step mono0 → mono1 is the standard first auxiliary step in the (main)
-   ;; ramp. Dedicated dim levels (dim0/dim1) exist below it for the modes.
-   ;; If the mono1 panel step feels too strong vs main mono0, override the
-   ;; panel face to mono0 (content + hl-line + divider still define it --
-   ;; common de-facto).
-   ;;
-   ;; Non-focused windows in general:
-   ;; Normal buffers stay on the main mono0 plane. The primary de-facto way
-   ;; to signal "this window is not the active one" is through
-   ;; `mode-line-inactive` (set to mono1 here, which sits as a subtle
-   ;; auxiliary-layer treatment at the chrome level without affecting editing
-   ;; areas). A global subtle shift for every non-selected window is exactly
-   ;; what `solaire-mode` and `auto-dim-other-buffers-mode` are designed for.
-   ;; The theme provides face specs using dedicated dim0 (weaker than the
-   ;; standard mono1 aux) for those modes. If you like the effect, using one
-   ;; of those modes is the recommended route (our controlled mono ramp
-   ;; works well with them).
-   ;;
-   ;; mode-line-inactive at mono1 already provides a gentle auxiliary feel
-   ;; that is consistent with how we treat explicit panels.
+   ;; Non-focused windows in general: normal buffers stay on mono1,
+   ;; and the standing signal for "this window is not the active one" is
+   ;; `mode-line-inactive' at mono2.  A global shift for every non-selected
+   ;; window is what `solaire-mode' and `auto-dim-other-buffers-mode' are for,
+   ;; and the theme gives them dim0, a shift weaker than a full step of the
+   ;; main ramp.
    ;;
    ;; child-frame-border keeps popups framed consistently with other chrome.
-   `(line-number ((,class (:foreground ,mono4 :background ,mono0))))
-   `(line-number-current-line ((,class (:foreground ,mono6 :background ,mono1 :weight bold))))
-   `(line-number-major-tick ((,class (:foreground ,mono3 :background ,mono0 :weight bold))))
-   `(line-number-minor-tick ((,class (:foreground ,mono4 :background ,mono0))))
-   `(window-divider ((,class (:foreground ,mono0))))
-   `(window-divider-first-pixel ((,class (:foreground ,mono1))))
-   `(window-divider-last-pixel ((,class (:foreground ,mono0))))
-   `(child-frame-border ((,class (:background ,mono2))))
+   `(line-number ((,class (:foreground ,mono4 :background ,mono1))))
+   `(line-number-current-line ((,class (:foreground ,mono6 :background ,mono0 :weight bold))))
+   `(line-number-major-tick ((,class (:foreground ,mono3 :background ,mono1 :weight bold))))
+   `(line-number-minor-tick ((,class (:foreground ,mono4 :background ,mono1))))
+   `(window-divider ((,class (:foreground ,mono1))))
+   `(window-divider-first-pixel ((,class (:foreground ,mono2))))
+   `(window-divider-last-pixel ((,class (:foreground ,mono1))))
+   `(child-frame-border ((,class (:background ,mono3))))
 
    ;; --- Font-lock (syntax primitives; bases for inherits) ---
    `(font-lock-comment-face ((,class (:foreground ,mono5 :slant italic))))
@@ -876,17 +865,17 @@ included in the 16-color export."
    `(avy-lead-face-2 ((,class (:foreground ,mono0 :background ,magenta))))
 
    ;; --- Completion & narrowing (modern UIs) ---
-   `(vertico-current ((,class (:background ,mono1))))
+   `(vertico-current ((,class (:background ,mono0))))
    `(orderless-match-face-0 ((,class (:foreground ,cyan))))
    `(orderless-match-face-1 ((,class (:foreground ,blue))))
    `(orderless-match-face-2 ((,class (:foreground ,purple))))
    `(orderless-match-face-3 ((,class (:foreground ,magenta))))
    `(consult-buffer ((,class (:foreground ,mono6))))
    `(consult-file ((,class (:foreground ,mono5))))
-   `(corfu-default ((,class (:background ,mono1))))
-   `(corfu-current ((,class (:foreground ,mono7 :background ,mono2))))
+   `(corfu-default ((,class (:background ,mono2))))
+   `(corfu-current ((,class (:foreground ,mono7 :background ,mono0))))
    `(corfu-bar ((,class (:background ,mono5))))
-   `(corfu-border ((,class (:background ,mono2))))
+   `(corfu-border ((,class (:background ,mono3))))
 
    ;; --- Navigation & project (dired, bookmark, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
@@ -894,32 +883,31 @@ included in the 16-color export."
    ;; dired-subtree hard-codes six backgrounds of its own, a teal-tinted dark
    ;; ramp that belongs to no theme, so an expanded listing arrives in tones
    ;; the frame uses nowhere else.  It asks for six background planes; the
-   ;; ramp has two below chrome (mono0 for content, mono1 for the subtle step
-   ;; on top of it), and spending mono2 or mono3 here would put a file listing
-   ;; at tab-bar brightness.  So the background carries the one thing it is
-   ;; needed for -- where an expanded block begins and ends -- and the two
-   ;; planes alternate: each nesting sits on the other plane from the block
-   ;; holding it, read as one slab laid over another.  How deep a row is, is
-   ;; already said by the indentation.
-   `(dired-subtree-depth-1-face ((,class (:background ,mono1))))
-   `(dired-subtree-depth-2-face ((,class (:background ,mono0))))
-   `(dired-subtree-depth-3-face ((,class (:background ,mono1))))
-   `(dired-subtree-depth-4-face ((,class (:background ,mono0))))
-   `(dired-subtree-depth-5-face ((,class (:background ,mono1))))
-   `(dired-subtree-depth-6-face ((,class (:background ,mono0))))
+   ;; ramp has two to spare (mono1 for content, mono2 for the idle step on
+   ;; top of it), and spending mono3 here would put a file listing at tab-bar
+   ;; brightness while mono0 would claim the level that means "current".  So
+   ;; the background carries the one thing it is needed for -- where an
+   ;; expanded block begins and ends -- and the two planes alternate: each
+   ;; nesting sits on the other plane from the block holding it, read as one
+   ;; slab laid over another.  How deep a row is, is already said by the
+   ;; indentation.
+   `(dired-subtree-depth-1-face ((,class (:background ,mono2))))
+   `(dired-subtree-depth-2-face ((,class (:background ,mono1))))
+   `(dired-subtree-depth-3-face ((,class (:background ,mono2))))
+   `(dired-subtree-depth-4-face ((,class (:background ,mono1))))
+   `(dired-subtree-depth-5-face ((,class (:background ,mono2))))
+   `(dired-subtree-depth-6-face ((,class (:background ,mono1))))
    `(bookmark-face ((,class (:foreground ,mono5 :distant-foreground ,mono5))))
    `(deadgrep-filename-face ((,class (:inherit font-lock-builtin-face))))
    `(treemacs-root-face ((,class (:inherit font-lock-constant-face))))
-   ;; Slate sidebar: give the whole treemacs window a distinct layer (mono1)
-   ;; so it reads as a side stone panel next to the main content plane (mono0).
-   ;; With `vertical-border` at mono0, the transition is clean (no extra seam
-   ;; line). The panel stands out through its tone + distinct content.
-   ;; If the mono1 step feels strong vs main mono0, you can override this face
-   ;; to mono0 in your config; distinction will come from content, hl-line,
-   ;; and the clean divider.
-   ;; hl-line inside the panel uses the next step (mono2) for subtle selection.
-   `(treemacs-window-background-face ((,class (:background ,mono1))))
-   `(treemacs-hl-line-face ((,class (:background ,mono2))))
+   ;; Slate sidebar: give the whole treemacs window the idle layer (mono2) so
+   ;; it reads as a side stone panel next to the mono1 content.  With
+   ;; `vertical-border' at mono1 the transition carries no extra seam
+   ;; line, and the panel stands out through its tone and its content.  If the
+   ;; step feels strong, override this face to mono1 in your config.
+   ;; hl-line inside the panel takes mono0, like every other current row.
+   `(treemacs-window-background-face ((,class (:background ,mono2))))
+   `(treemacs-hl-line-face ((,class (:background ,mono0))))
    `(treemacs-directory-face ((,class (:inherit font-lock-type-face))))
    `(treemacs-directory-collapsed-face ((,class (:inherit treemacs-directory-face))))
    `(treemacs-file-face ((,class (:foreground ,mono6))))
@@ -931,17 +919,17 @@ included in the 16-color export."
 
    ;; dirvish (dired-based modern file manager). We style its custom hl/inactive
    ;; faces to follow the mono ramp. For dirvish-side (sidebar usage) the main
-   ;; directory listing background remains the normal content plane (mono0 /
-   ;; `default') because dirvish re-uses dired buffers and does not expose a
-   ;; dedicated window-background-face like treemacs. Distinction for the pane
-   ;; comes from header-line (mono3), our hl-line faces, window dividers (which
-   ;; blend to panel tone when next to a mono1 area), and optional multi-pane
-   ;; layout. This matches the design constraints of the package. See README
-   ;; for a user hook example if you want mono1 for the whole side pane.
+   ;; directory listing background remains mono1 (`default')
+   ;; because dirvish re-uses dired buffers and does not expose a dedicated
+   ;; window-background-face like treemacs. Distinction for the pane comes
+   ;; from header-line, our hl-line faces, window dividers (which blend to
+   ;; panel tone when next to a mono2 area), and optional multi-pane layout.
+   ;; This matches the design constraints of the package. See README for a
+   ;; user hook example if you want mono2 for the whole side pane.
    ;; Recommended dired-native alternative to treemacs (for users who prefer
    ;; dired-native navigation with built-in preview).
-   `(dirvish-hl-line ((,class (:background ,mono2 :extend t))))
-   `(dirvish-hl-line-inactive ((,class (:background ,mono1 :extend t))))
+   `(dirvish-hl-line ((,class (:background ,mono0 :extend t))))
+   `(dirvish-hl-line-inactive ((,class (:background ,mono2 :extend t))))
    `(dirvish-inactive ((,class (:inherit shadow))))
 
    ;; --- Marginalia (completion annotations; tone down lively file attrs) ---
@@ -950,7 +938,7 @@ included in the 16-color export."
    ;; in the design notes above.  Explicitly overrides marginalia's default
    ;; inherits from font-lock-* (which would produce purple/red/magenta/cyan
    ;; noise on "lrwxr-xr-x ..." permission strings and similar).
-   ;; All marginalia-file-priv-* now use the shadow family for visual
+   ;; Every marginalia-file-priv-* face takes the shadow family, for visual
    ;; uniformity within the compact permission annotation string.
    ;; Weight/italic provide intra-mono distinction (e.g. bold 'd' for dir,
    ;; italic for link).  Underline is intentionally NOT used here -- see
@@ -988,7 +976,7 @@ included in the 16-color export."
    `(compilation-mode-line-exit ((,class (:inherit compilation-info))))
 
    ;; --- Evil / vim-emulation ---
-   `(evil-snipe-first-match-face ((,class (:background ,mono3))))
+   `(evil-snipe-first-match-face ((,class (:background ,mono0))))
 
    ;; --- Outlines (inherit font-lock-*) ---
    `(outline-1 ((,class (:inherit font-lock-type-face))))
@@ -1032,9 +1020,9 @@ included in the 16-color export."
 
    ;; Tables / columns
    `(org-table ((,class (:foreground ,mono6))))
-   `(org-table-header ((,class (:foreground ,mono7 :background ,mono2))))
-   `(org-column ((,class (:foreground ,mono7 :background ,mono2 :weight normal :slant normal :strike-through nil :underline nil))))
-   `(org-column-title ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-table-header ((,class (:foreground ,mono7 :background ,mono3))))
+   `(org-column ((,class (:foreground ,mono7 :background ,mono3 :weight normal :slant normal :strike-through nil :underline nil))))
+   `(org-column-title ((,class (:foreground ,mono7 :background ,mono3))))
    `(org-tag ((,class (:weight bold))))
 
    ;; Timestamps / dates
@@ -1068,20 +1056,20 @@ included in the 16-color export."
 
    ;; Habits
    `(org-habit-clear-face ((,class (:foreground ,mono0 :background ,blue))))
-   `(org-habit-clear-future-face ((,class (:foreground ,blue :background ,mono2))))
+   `(org-habit-clear-future-face ((,class (:foreground ,blue :background ,mono3))))
    `(org-habit-ready-face ((,class (:foreground ,mono0 :background ,green))))
-   `(org-habit-ready-future-face ((,class (:foreground ,green :background ,mono2))))
+   `(org-habit-ready-future-face ((,class (:foreground ,green :background ,mono3))))
    `(org-habit-alert-face ((,class (:foreground ,mono0 :background ,yellow))))
-   `(org-habit-alert-future-face ((,class (:foreground ,yellow :background ,mono2))))
+   `(org-habit-alert-future-face ((,class (:foreground ,yellow :background ,mono3))))
    `(org-habit-overdue-face ((,class (:foreground ,mono0 :background ,red))))
    `(org-habit-overdue-future-face ((,class (:foreground ,orange :background ,mono3))))
 
    ;; Other org (low-frequency)
-   `(org-clock-overlay ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-clock-overlay ((,class (:foreground ,mono7 :background ,mono3))))
    `(org-mode-line-clock-overrun ((,class (:foreground ,mono0 :background ,red))))
-   `(org-dispatcher-highlight ((,class (:foreground ,mono7 :background ,mono2 :weight bold))))
+   `(org-dispatcher-highlight ((,class (:foreground ,mono7 :background ,mono0 :weight bold))))
    `(org-latex-and-related ((,class (:foreground ,mono5))))
-   `(org-agenda-restriction-lock ((,class (:foreground ,mono7 :background ,mono2))))
+   `(org-agenda-restriction-lock ((,class (:foreground ,mono7 :background ,mono3))))
 
    ;; Extensions (org-around packages)
    `(org-roam-header-line ((,class (:inherit header-line))))
@@ -1093,21 +1081,21 @@ included in the 16-color export."
    ;; org-dayflow -- timeline column chrome on the mono ramp (not raw gray20).
    ;; Three bands can land on the same column: the weekend shade, the current
    ;; time and the cursor.  The weekend one is always there, so it takes the
-   ;; lower step (mono1, the subtle plane over content) and the two moving
-   ;; ones take the step above it (mono2, which the ramp roles above give to
-   ;; alt-subtle highlights).  Without the gap, a Saturday would swallow the
-   ;; current-time column on two days in seven.  dim0/dim1 are not candidates
-   ;; here even though they would sit lower still: those levels mean "this
-   ;; window is not the selected one" wherever solaire-mode or
-   ;; auto-dim-other-buffers is on, and a weekend is not that.
-   `(org-dayflow-weekend-column-face ((,class (:background ,mono1 :extend t))))
+   ;; idle step (mono2) and the two moving ones take the levels the ramp
+   ;; gives to what is happening now: mono3 for the current time and mono0,
+   ;; the current level, for the cursor.  Without the gap, a Saturday would
+   ;; swallow the current-time column on two days in seven.  dim0/dim1 are not
+   ;; candidates: those levels mean "this window is not the selected one"
+   ;; wherever solaire-mode or auto-dim-other-buffers is on, and a weekend is
+   ;; not that.
+   `(org-dayflow-weekend-column-face ((,class (:background ,mono2 :extend t))))
    `(org-dayflow-weekend-face ((,class (:foreground ,mono4 :weight bold))))
    `(org-dayflow-weekday-face ((,class (:foreground ,mono5))))
    `(org-dayflow-units-face ((,class (:foreground ,mono5))))
    `(org-dayflow-label-face ((,class (:foreground ,mono5))))
    `(org-dayflow-query-face ((,class (:inherit org-agenda-structure))))
-   `(org-dayflow-now-column-face ((,class (:background ,mono2 :extend t))))
-   `(org-dayflow-cursor-column-face ((,class (:background ,mono2 :extend t))))
+   `(org-dayflow-now-column-face ((,class (:background ,mono3 :extend t))))
+   `(org-dayflow-cursor-column-face ((,class (:background ,mono0 :extend t))))
    `(org-dayflow-now-unit-face ((,class (:inherit calendar-today))))
    `(org-dayflow-cursor-unit-face ((,class (:inherit org-date-selected))))
    `(org-dayflow-title-done-face ((,class (:inherit org-headline-done :strike-through t))))
@@ -1173,31 +1161,31 @@ included in the 16-color export."
    ;; `:extend t' on diff/heading/blame bgs is supplied by defface and
    ;; preserved by `face-spec-recalc' (see face-spec discipline notes above),
    ;; so it is not restated here.
-   `(magit-section-highlight ((,class (:background ,mono1))))
+   `(magit-section-highlight ((,class (:background ,mono0))))
    `(magit-section-heading ((,class (:inherit font-lock-keyword-face :weight bold))))
    `(magit-section-secondary-heading ((,class (:weight bold))))
    `(magit-section-heading-selection ((,class (:inherit magit-section-highlight :foreground ,orange :weight bold))))
    `(magit-diff-file-heading ((,class (:weight bold))))
    `(magit-diff-file-heading-highlight ((,class (:inherit magit-section-highlight :weight bold))))
    `(magit-diff-file-heading-selection ((,class (:inherit magit-diff-file-heading-highlight :foreground ,orange))))
-   `(magit-diff-hunk-heading ((,class (:background ,mono2 :foreground ,mono6))))
-   `(magit-diff-hunk-heading-highlight ((,class (:background ,mono3 :foreground ,mono7))))
+   `(magit-diff-hunk-heading ((,class (:background ,mono3 :foreground ,mono6))))
+   `(magit-diff-hunk-heading-highlight ((,class (:background ,mono0 :foreground ,mono7))))
    `(magit-diff-hunk-heading-selection ((,class (:inherit magit-diff-hunk-heading-highlight :foreground ,orange))))
    `(magit-diff-conflict-heading ((,class (:inherit magit-diff-hunk-heading))))
    `(magit-diff-revision-summary ((,class (:inherit magit-diff-hunk-heading))))
    `(magit-diff-lines-heading ((,class (:background ,orange :foreground ,mono0))))
    `(magit-diff-context ((,class (:foreground ,mono5))))
-   ;; Bumped the non-highlight diff backgrounds from mono1 to mono2 (and their
-   ;; highlight counterparts from mono2 to mono3) for the same reason as other
-   ;; subtle content bgs: visibility on mono1-dimmed windows and de-facto
-   ;; "this region is different" contrast on normal mono0 content.
-   `(magit-diff-context-highlight ((,class (:background ,mono1 :foreground ,mono6))))
-   `(magit-diff-added ((,class (:background ,mono1 :foreground ,green))))
-   `(magit-diff-added-highlight ((,class (:background ,mono2 :foreground ,green))))
-   `(magit-diff-removed ((,class (:background ,mono1 :foreground ,red))))
-   `(magit-diff-removed-highlight ((,class (:background ,mono2 :foreground ,red))))
-   `(magit-diff-base ((,class (:background ,mono1 :foreground ,yellow))))
-   `(magit-diff-base-highlight ((,class (:background ,mono2 :foreground ,yellow))))
+   ;; The hunk point is in takes mono0 and every other hunk takes mono2, so
+   ;; the depth says only which hunk is current and the fg hue keeps saying
+   ;; added / removed / base.  The two land on opposite sides of mono1,
+   ;; which is what makes the current hunk findable in a long diff.
+   `(magit-diff-context-highlight ((,class (:background ,mono0 :foreground ,mono6))))
+   `(magit-diff-added ((,class (:background ,mono2 :foreground ,green))))
+   `(magit-diff-added-highlight ((,class (:background ,mono0 :foreground ,green))))
+   `(magit-diff-removed ((,class (:background ,mono2 :foreground ,red))))
+   `(magit-diff-removed-highlight ((,class (:background ,mono0 :foreground ,red))))
+   `(magit-diff-base ((,class (:background ,mono2 :foreground ,yellow))))
+   `(magit-diff-base-highlight ((,class (:background ,mono0 :foreground ,yellow))))
    `(magit-diff-our ((,class (:inherit magit-diff-removed))))
    `(magit-diff-their ((,class (:inherit magit-diff-added))))
    `(magit-diff-our-highlight ((,class (:inherit magit-diff-removed-highlight))))
@@ -1220,8 +1208,8 @@ included in the 16-color export."
    `(magit-refname ((,class (:foreground ,mono5))))
    `(magit-keyword ((,class (:inherit font-lock-string-face))))
    `(magit-keyword-squash ((,class (:inherit font-lock-warning-face))))
-   `(magit-blame-highlight ((,class (:background ,mono2))))
-   `(magit-blame-heading ((,class (:background ,mono2 :foreground ,mono6
+   `(magit-blame-highlight ((,class (:background ,mono0))))
+   `(magit-blame-heading ((,class (:background ,mono3 :foreground ,mono6
                                                :weight normal :slant normal
                                                :box (:color ,mono2 :line-width 2)))))
    `(magit-blame-summary ((,class (:foreground ,mono7))))
@@ -1266,31 +1254,32 @@ included in the 16-color export."
    `(diff-hl-change ((,class (:foreground ,yellow))))
 
    ;; ediff: current diff (focused chunk)
-   `(ediff-current-diff-A        ((,class (:background ,mono1 :foreground ,red))))
-   `(ediff-current-diff-B        ((,class (:background ,mono1 :foreground ,green))))
-   `(ediff-current-diff-C        ((,class (:background ,mono1 :foreground ,yellow))))
-   `(ediff-current-diff-Ancestor ((,class (:background ,mono1 :foreground ,blue))))
+   `(ediff-current-diff-A        ((,class (:background ,mono0 :foreground ,red))))
+   `(ediff-current-diff-B        ((,class (:background ,mono0 :foreground ,green))))
+   `(ediff-current-diff-C        ((,class (:background ,mono0 :foreground ,yellow))))
+   `(ediff-current-diff-Ancestor ((,class (:background ,mono0 :foreground ,blue))))
 
-   ;; ediff: fine diff (sub-region emphasis within current; bold is our marker)
-   `(ediff-fine-diff-A           ((,class (:background ,mono2 :foreground ,red    :weight bold))))
-   `(ediff-fine-diff-B           ((,class (:background ,mono2 :foreground ,green  :weight bold))))
-   `(ediff-fine-diff-C           ((,class (:background ,mono2 :foreground ,yellow :weight bold))))
-   `(ediff-fine-diff-Ancestor    ((,class (:background ,mono2 :foreground ,blue   :weight bold))))
+   ;; ediff: fine diff (sub-region emphasis within current; the hue fills, since the
+   ;; current diff already holds the near depth)
+   `(ediff-fine-diff-A           ((,class (:background ,red    :foreground ,mono0 :weight bold))))
+   `(ediff-fine-diff-B           ((,class (:background ,green  :foreground ,mono0 :weight bold))))
+   `(ediff-fine-diff-C           ((,class (:background ,yellow :foreground ,mono0 :weight bold))))
+   `(ediff-fine-diff-Ancestor    ((,class (:background ,blue   :foreground ,mono0 :weight bold))))
 
    ;; ediff: non-current diffs (alternating markers; quiet so current wins)
-   `(ediff-even-diff-A           ((,class (:background ,mono1 :foreground ,mono5))))
-   `(ediff-even-diff-B           ((,class (:background ,mono1 :foreground ,mono5))))
-   `(ediff-even-diff-C           ((,class (:background ,mono1 :foreground ,mono5))))
-   `(ediff-even-diff-Ancestor    ((,class (:background ,mono1 :foreground ,mono5))))
-   `(ediff-odd-diff-A            ((,class (:background ,mono1 :foreground ,mono5))))
-   `(ediff-odd-diff-B            ((,class (:background ,mono1 :foreground ,mono5))))
-   `(ediff-odd-diff-C            ((,class (:background ,mono1 :foreground ,mono5))))
-   `(ediff-odd-diff-Ancestor     ((,class (:background ,mono1 :foreground ,mono5))))
+   `(ediff-even-diff-A           ((,class (:background ,mono2 :foreground ,mono5))))
+   `(ediff-even-diff-B           ((,class (:background ,mono2 :foreground ,mono5))))
+   `(ediff-even-diff-C           ((,class (:background ,mono2 :foreground ,mono5))))
+   `(ediff-even-diff-Ancestor    ((,class (:background ,mono2 :foreground ,mono5))))
+   `(ediff-odd-diff-A            ((,class (:background ,mono2 :foreground ,mono5))))
+   `(ediff-odd-diff-B            ((,class (:background ,mono2 :foreground ,mono5))))
+   `(ediff-odd-diff-C            ((,class (:background ,mono2 :foreground ,mono5))))
+   `(ediff-odd-diff-Ancestor     ((,class (:background ,mono2 :foreground ,mono5))))
 
    ;; --- Calendar / eww (other apps) ---
    `(calendar-today ((,class (:inherit font-lock-warning-face :underline t))))
    `(calendar-weekend-header ((,class (:inherit font-lock-type-face))))
-   `(holiday ((,class (:background ,mono2))))
+   `(holiday ((,class (:background ,mono3))))
    `(diary ((,class (:inherit font-lock-string-face))))
    `(eww-valid-certificate ((,class (:weight bold :foreground ,mono6))))
 
@@ -1305,10 +1294,10 @@ included in the 16-color export."
    `(org-timeblock-blue    ((,class (:background ,blue    :foreground ,mono0 :extend t))))
    `(org-timeblock-magenta ((,class (:background ,magenta :foreground ,mono0 :extend t))))
    `(org-timeblock-cyan    ((,class (:background ,cyan    :foreground ,mono0 :extend t))))
-   `(org-timeblock-hours-line ((,class (:background ,mono2 :extend t))))
+   `(org-timeblock-hours-line ((,class (:background ,mono3 :extend t))))
    `(org-timeblock-current-time-indicator ((,class (:background ,green))))
    `(org-timeblock-select ((,class (:background ,mono5 :foreground ,mono0 :extend t))))
-   `(org-timeblock-mark ((,class (:background ,mono3 :foreground ,mono7 :extend t))))))
+   `(org-timeblock-mark ((,class (:background ,mono0 :foreground ,mono7 :extend t))))))
 
 ;; ANSI 16-color slot strategy (Solarized convention).
 ;;
@@ -1316,10 +1305,10 @@ included in the 16-color export."
 ;; orange at brightred (9) and purple at brightmagenta (13). The
 ;; remaining 8 slots carry the mono ramp:
 ;;
-;;   slot 0  black        mono1   (subtle, just above bg)
+;;   slot 0  black        dim0    (the dim plane for non-selected areas)
 ;;   slot 7  white        mono5   (medium fg)
-;;   slot 8  brightblack  mono0   (= bg; intentionally near-invisible for dim
-;;                                   text, following Solarized's base03 placement)
+;;   slot 8  brightblack  mono0   (just below bg; near-invisible for dim text,
+;;                                   following Solarized's base03 placement)
 ;;   slot 10 brightgreen  mono2
 ;;   slot 11 brightyellow mono3
 ;;   slot 12 brightblue   mono4
@@ -1327,20 +1316,28 @@ included in the 16-color export."
 ;;                                   base1 / Nord's nord7 placement)
 ;;   slot 15 brightwhite  mono7   (brightest fg)
 ;;
-;; Only slot 8 (brightblack) collides with bg by design; this is the long-
-;; standing Solarized convention used by every dim-comment-aware tool.
-;; Every other slot is a distinct readable color, so TUI tools that write
-;; brightcyan, brightyellow, etc. produce visible output.
+;; The background is mono1 and the text mono7, so those two take the
+;; terminal's own background and foreground rather than a numbered slot;
+;; brightwhite repeats the foreground by convention.  That leaves slot 8 for
+;; mono0, the level outside mono1, which is the Solarized base03 role: a grey
+;; that
+;; is nearly the background, for text meant to disappear.  Every other slot is
+;; a distinct readable color, so TUI tools that write brightcyan,
+;; brightyellow, etc. produce visible output.
+;;
+;; dim1 is not exported: the sixteen slots are full.  Giving it one would mean
+;; dropping a mono level, which is the trade to make only if dim0 is ever
+;; retired.
 (defconst gensho--export-name-map
-  '((mono0   . background)
-    (mono0   . brightblack)    ; was: brightcyan (slot 14) — moved per Solarized
-    (mono1   . black)
-    (mono2   . brightgreen)    ; was: brightblack (slot 8)
-    (mono3   . brightyellow)   ; was: brightblue (slot 12); slot 11 used to be mono6
-    (mono4   . brightblue)     ; was: brightgreen (slot 10)
-    (mono5   . white)
-    (mono6   . brightcyan)     ; was: brightyellow (slot 11) — fixes slot 14 collision
+  '((mono1   . background)
     (mono7   . foreground)
+    (dim0    . black)
+    (mono0   . brightblack)
+    (mono2   . brightgreen)
+    (mono3   . brightyellow)
+    (mono4   . brightblue)
+    (mono5   . white)
+    (mono6   . brightcyan)
     (mono7   . brightwhite)
     (red     . red)
     (orange  . brightred)
@@ -1357,10 +1354,9 @@ included in the 16-color export."
 FORMAT is `json', `alist', or `hex-list'.
 VARIANT is `wet' or `dry' (defaults from `frame-background-mode')."
   (let* ((palette (gensho-palette variant))
-         ;; Canonical ANSI 0-15 slot order. Earlier versions of this list had
-         ;; brightyellow and brightmagenta swapped, which would mislabel
-         ;; positions 11 and 13 for any external consumer that indexes by
-         ;; slot number rather than by name.
+         ;; Canonical ANSI 0-15 slot order.  It has to match the real slot
+         ;; numbering, since an external consumer may index this list by
+         ;; position rather than read the names.
          (ordered-keys '(black red green yellow blue magenta cyan white
                                brightblack brightred brightgreen brightyellow
                                brightblue brightmagenta brightcyan brightwhite)))
