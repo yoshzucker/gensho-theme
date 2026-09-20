@@ -190,7 +190,8 @@ The alist uses the theme's internal semantic palette keys:
 The returned colors respect `gensho-hsl-correction' (if non-zero).
 For external tools / terminal emulators prefer `gensho-export-palette',
 which maps to conventional ANSI/terminal color names (background, black,
-brightblack, ...).  dim1 has no slot there."
+brightblack, ...).  dim0 and dim1 have no slot there: they mean \"not
+the selected window\", which a terminal has no notion of."
   (let ((v (or variant
                (if (eq frame-background-mode 'light) 'dry 'wet))))
     (if (eq v 'dry) gensho-dry gensho-wet)))
@@ -1299,51 +1300,48 @@ brightblack, ...).  dim1 has no slot there."
    `(org-timeblock-select ((,class (:background ,mono5 :foreground ,mono0 :extend t))))
    `(org-timeblock-mark ((,class (:background ,mono0 :foreground ,mono7 :extend t))))))
 
-;; ANSI 16-color slot strategy (Solarized convention).
+;; ANSI 16-color slot strategy.
 ;;
-;; 8 hues fill: red/green/yellow/blue/magenta/cyan (slots 1-6) plus
-;; orange at brightred (9) and purple at brightmagenta (13). The
-;; remaining 8 slots carry the mono ramp:
+;; The eight hues fill red/green/yellow/blue/magenta/cyan (slots 1-6) plus
+;; orange at brightred (9) and purple at brightmagenta (13); brightcyan (14)
+;; repeats cyan, the usual fallback for a palette that carries eight hues
+;; rather than twelve.  The remaining seven slots carry the mono ramp:
 ;;
-;;   slot 0  black        dim0    (the dim plane for non-selected areas)
-;;   slot 7  white        mono5   (medium fg)
-;;   slot 8  brightblack  mono0   (just below bg; near-invisible for dim text,
-;;                                   following Solarized's base03 placement)
-;;   slot 10 brightgreen  mono2
-;;   slot 11 brightyellow mono3
-;;   slot 12 brightblue   mono4
-;;   slot 14 brightcyan   mono6   (a usable light grey, NEVER bg — Solarized's
-;;                                   base1 / Nord's nord7 placement)
-;;   slot 15 brightwhite  mono7   (brightest fg)
+;;   slot 0  black        mono0   (the level outside the background)
+;;   slot 8  brightblack  mono2   (dim but readable -- the grey TUI tools
+;;                                   reach for when they mean de-emphasised)
+;;   slot 10 brightgreen  mono3
+;;   slot 11 brightyellow mono4
+;;   slot 12 brightblue   mono5
+;;   slot 7  white        mono6
+;;   slot 15 brightwhite  mono7   (brightest; repeats the foreground)
 ;;
 ;; The background is mono1 and the text mono7, so those two take the
-;; terminal's own background and foreground rather than a numbered slot;
-;; brightwhite repeats the foreground by convention.  That leaves slot 8 for
-;; mono0, the level outside mono1, which is the Solarized base03 role: a grey
-;; that
-;; is nearly the background, for text meant to disappear.  Every other slot is
-;; a distinct readable color, so TUI tools that write brightcyan,
-;; brightyellow, etc. produce visible output.
+;; terminal's own background and foreground rather than a numbered slot.
+;; Between them the whole eight-step ramp reaches a terminal, and both grey
+;; pairs run the way their names promise: black darker than brightblack,
+;; white than brightwhite.
 ;;
-;; dim1 is not exported: the sixteen slots are full.  Giving it one would mean
-;; dropping a mono level, which is the trade to make only if dim0 is ever
-;; retired.
+;; dim0 and dim1 are not exported.  They mean "this Emacs window is not the
+;; selected one", which a terminal has no notion of, so a slot spent on one
+;; would be a slot no program could ask for.  Leaving them out is what lets
+;; brightcyan go back to being cyan.
 (defconst gensho--export-name-map
   '((mono1   . background)
     (mono7   . foreground)
-    (dim0    . black)
-    (mono0   . brightblack)
-    (mono2   . brightgreen)
-    (mono3   . brightyellow)
-    (mono4   . brightblue)
-    (mono5   . white)
-    (mono6   . brightcyan)
+    (mono0   . black)
+    (mono2   . brightblack)
+    (mono3   . brightgreen)
+    (mono4   . brightyellow)
+    (mono5   . brightblue)
+    (mono6   . white)
     (mono7   . brightwhite)
     (red     . red)
     (orange  . brightred)
     (yellow  . yellow)
     (green   . green)
     (cyan    . cyan)
+    (cyan    . brightcyan)
     (blue    . blue)
     (purple  . brightmagenta)
     (magenta . magenta)))

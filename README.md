@@ -70,19 +70,19 @@ Example JSON (via `gensho-export-palette 'json 'wet`):
 {
   "background": "#262828",
   "foreground": "#888c8c",
-  "black": "#2a2c2c",
-  "brightblack": "#181919",
-  "brightgreen": "#353737",
-  "brightyellow": "#444747",
-  "brightblue": "#545757",
-  "white": "#656868",
-  "brightcyan": "#767a7a",
+  "black": "#181919",
+  "brightblack": "#353737",
+  "brightgreen": "#444747",
+  "brightyellow": "#545757",
+  "brightblue": "#656868",
+  "white": "#767a7a",
   "brightwhite": "#888c8c",
   "red": "#d4647f",
   "brightred": "#bb785a",
   "yellow": "#a2835a",
   "green": "#59965e",
   "cyan": "#5f9196",
+  "brightcyan": "#5f9196",
   "blue": "#638cb4",
   "brightmagenta": "#9a79c9",
   "magenta": "#cb63ae"
@@ -95,31 +95,34 @@ Example JSON (via `gensho-export-palette 'json 'wet`):
 
 | Role / ANSI key     | Internal key | wet (deep dark) | dry (washed stone) |
 |---------------------|--------------|-----------------|--------------------|
-| brightblack         | mono0        | #181919         | #2c2e2e            |
+| black               | mono0        | #181919         | #2c2e2e            |
 | background          | mono1        | #262828         | #3c3d3e            |
-| black               | dim0         | #2a2c2c         | #404242            |
-| *(no slot)*         | dim1         | #2f3030         | #444747            |
-| brightgreen         | mono2        | #353737         | #4b4e4e            |
-| brightyellow        | mono3        | #444747         | #5c5e5f            |
-| brightblue          | mono4        | #545757         | #6c7070            |
-| white               | mono5        | #656868         | #7e8182            |
-| brightcyan          | mono6        | #767a7a         | #8f9394            |
+| brightblack         | mono2        | #353737         | #4b4e4e            |
+| brightgreen         | mono3        | #444747         | #5c5e5f            |
+| brightyellow        | mono4        | #545757         | #6c7070            |
+| brightblue          | mono5        | #656868         | #7e8182            |
+| white               | mono6        | #767a7a         | #8f9394            |
 | foreground, brightwhite | mono7    | #888c8c         | #a2a6a7            |
 | red                 | red          | #d4647f         | #d4647f            |
 | brightred           | orange       | #bb785a         | #bb785a            |
 | yellow              | yellow       | #a2835a         | #a2835a            |
 | green               | green        | #59965e         | #59965e            |
-| cyan                | cyan         | #5f9196         | #5f9196            |
+| cyan, brightcyan    | cyan         | #5f9196         | #5f9196            |
 | blue                | blue         | #638cb4         | #638cb4            |
 | brightmagenta       | purple       | #9a79c9         | #9a79c9            |
 | magenta             | magenta      | #cb63ae         | #cb63ae            |
 
-The rows are in ramp order: `mono0` lies outside the background, away from the
-foreground, and the dim levels sit between the background and `mono2`.
+The grey rows are in ramp order: `mono0` lies outside the background, away from
+the foreground, and each `bright` slot is lighter than the plain one of the same
+name. `dim0` and `dim1` are not in the table — see below.
 
 Exact values are generated from HSLuv at load time (with `gensho-hsl-correction` deltas applied if set). They are exposed via the HSL constants (`gensho-dry-hsl`, `gensho-wet-hsl`), the derived hex variables (`gensho-dry`, `gensho-wet`), and the accessors `gensho-palette` (internal semantic keys) / `gensho-export-palette` (ANSI/terminal names for external use).
 
-For terminal emulators that want a 16-color palette, use the values from `gensho-export-palette` (or run it and copy). The background and the foreground are `mono1` and `mono7`, so they take the terminal's own background and foreground rather than a numbered slot; the sixteen slots then carry the six remaining mono levels, `dim0`, and the 8 accent hues. `brightwhite` repeats the foreground by convention, and `brightblack` holds `mono0`, the level just outside the background — the Solarized base03 role, a grey that is nearly the background, for text meant to disappear. `dim1` has no slot. `'hex-list` gives the direct ordered list for slots 0-15.
+For terminal emulators that want a 16-color palette, use the values from `gensho-export-palette` (or run it and copy). The background and the foreground are `mono1` and `mono7`, so they take the terminal's own background and foreground rather than a numbered slot, and the whole eight-step ramp reaches the terminal between them. `brightblack` holds `mono2` — dim but readable, which is what TUI tools actually want from that slot — and `black` holds `mono0`, the level outside the background. Eight hues cannot fill twelve hue slots, so `brightcyan` repeats `cyan`; the other three bright hue slots carry ramp levels.
+
+`dim0` and `dim1` are not exported. They mean "this Emacs window is not the selected one", which a terminal has no notion of, so a slot spent on one would be a slot no program could ask for. Leaving them out is what lets `brightcyan` go back to being cyan.
+
+`'hex-list` gives the direct ordered list for slots 0-15.
 
 ## UI chrome, tab bar, and slate texture
 
