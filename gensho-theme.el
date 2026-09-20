@@ -854,11 +854,11 @@ the selected window\", which a terminal has no notion of."
    `(window-divider ((,class (:foreground ,mono1))))
    `(window-divider-first-pixel ((,class (:foreground ,mono2))))
    `(window-divider-last-pixel ((,class (:foreground ,mono1))))
-   ;; A rim takes the colour of what is outside it.  The inside of a popup is
-   ;; more than one level, so a rim drawn from the inside agrees with one of
-   ;; them and parts from the rest; drawn from the page it is a gap instead,
-   ;; which is how areas are separated everywhere else here.
-   `(child-frame-border ((,class (:background ,mono1))))
+   ;; The generic child-frame rim, for the popups that leave their body at
+   ;; the page colour: there the rim is the only thing saying where the frame
+   ;; ends, so it takes the level that frames content.  A popup with a body of
+   ;; its own says it without one -- see `corfu-border' below.
+   `(child-frame-border ((,class (:background ,mono3))))
 
    ;; --- Font-lock (syntax primitives; bases for inherits) ---
    `(font-lock-comment-face ((,class (:foreground ,mono5 :slant italic))))
@@ -893,7 +893,11 @@ the selected window\", which a terminal has no notion of."
    `(corfu-default ((,class (:background ,mono2))))
    `(corfu-current ((,class (:foreground ,mono6 :background ,mono0))))
    `(corfu-bar ((,class (:background ,mono5))))
-   `(corfu-border ((,class (:background ,mono1))))
+   ;; corfu paints the frame's rim from this, and its body is a plane of its
+   ;; own, so the rim joins the body rather than ringing it.  A popup covers
+   ;; what is behind it, and a rim drawn from the page is only invisible
+   ;; while the page is what happens to be behind.
+   `(corfu-border ((,class (:background ,mono2))))
 
    ;; --- Navigation & project (dired, bookmark, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
