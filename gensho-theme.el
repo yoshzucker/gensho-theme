@@ -283,9 +283,6 @@ the selected window\", which a terminal has no notion of."
   ;;   mono0  what is current inside the content -- the line point is on,
   ;;          the region, the hunk you are reading, the candidate you are on.
   ;;          It lies outside mono1, away from fg: a recess, not a rise.
-  ;;          No other background takes it, so a mark never collides with a
-  ;;          state.  It doubles as the knockout text color on saturated
-  ;;          fills, where what reads is simply the far end of the ramp.
   ;;   mono1  the content surface itself, with its fringe, line numbers, the
   ;;          frame's internal border and the dividers between windows, which
   ;;          stay flush so that no seam fights the planes.  The figure of an
@@ -758,7 +755,7 @@ the selected window\", which a terminal has no notion of."
    `(secondary-selection ((,class (:background ,mono2))))
    `(highlight ((,class (:background ,mono0))))
    `(shadow ((,class (:foreground ,mono4))))
-   `(match ((,class (:foreground ,mono0 :background ,green))))
+   `(match ((,class (:foreground ,mono1 :background ,green))))
    ;; The partner delimiter is marked by weight and the far end of the ramp
    ;; alone.  A plane would be too much for two characters, and a hue is not
    ;; available: every one of the eight is already a font-lock category, so a
@@ -771,7 +768,7 @@ the selected window\", which a terminal has no notion of."
    `(warning ((,class (:foreground ,yellow :weight bold))))
    `(success ((,class (:foreground ,green :weight bold))))
    `(minibuffer-prompt ((,class (:foreground ,mono6))))
-   `(minibuffer-nonselected ((,class (:foreground ,mono0 :background ,yellow))))
+   `(minibuffer-nonselected ((,class (:foreground ,mono1 :background ,yellow))))
    ;; Emacs's own definition of `tooltip' inherits `variable-pitch', which
    ;; puts a proportional face in front of somebody whose every other window
    ;; is monospaced.  A tooltip carries key bindings, signatures and paths --
@@ -851,14 +848,17 @@ the selected window\", which a terminal has no notion of."
    ;; child-frame-border keeps popups framed consistently with other chrome.
    `(line-number ((,class (:foreground ,mono4 :background ,mono1))))
    `(line-number-current-line ((,class (:foreground ,mono6 :background ,mono0 :weight bold))))
-   ;; The major tick has to read as more than the minor one, so it takes the
-   ;; step above it rather than a level from the background half of the ramp.
+   ;; The major tick has to read as more than the minor one it outranks.
    `(line-number-major-tick ((,class (:foreground ,mono5 :background ,mono1 :weight bold))))
    `(line-number-minor-tick ((,class (:foreground ,mono4 :background ,mono1))))
    `(window-divider ((,class (:foreground ,mono1))))
    `(window-divider-first-pixel ((,class (:foreground ,mono2))))
    `(window-divider-last-pixel ((,class (:foreground ,mono1))))
-   `(child-frame-border ((,class (:background ,mono3))))
+   ;; A rim takes the colour of what is outside it.  The inside of a popup is
+   ;; more than one level, so a rim drawn from the inside agrees with one of
+   ;; them and parts from the rest; drawn from the page it is a gap instead,
+   ;; which is how areas are separated everywhere else here.
+   `(child-frame-border ((,class (:background ,mono1))))
 
    ;; --- Font-lock (syntax primitives; bases for inherits) ---
    `(font-lock-comment-face ((,class (:foreground ,mono5 :slant italic))))
@@ -873,16 +873,14 @@ the selected window\", which a terminal has no notion of."
    `(font-lock-warning-face ((,class (:foreground ,yellow))))
 
    ;; --- Search, jump, isearch (interactive highlights) ---
-   `(isearch ((,class (:foreground ,mono0 :background ,orange))))
-   ;; The other matches take mono2, the idle plane, since only the one point
-   ;; is on is current.  mono0 is the knockout color for a saturated fill and
-   ;; has no business on a grey one: against mono2 it is a step and a half of
-   ;; the ramp, which is not enough to read a word through.
+   `(isearch ((,class (:foreground ,mono1 :background ,orange))))
+   ;; The other matches take the idle plane: only the one point is on is
+   ;; current.
    `(lazy-highlight ((,class (:foreground ,mono7 :background ,mono2))))
-   `(avy-lead-face ((,class (:foreground ,mono0 :background ,blue))))
-   `(avy-lead-face-0 ((,class (:foreground ,mono0 :background ,orange))))
-   `(avy-lead-face-1 ((,class (:foreground ,mono0 :background ,red))))
-   `(avy-lead-face-2 ((,class (:foreground ,mono0 :background ,magenta))))
+   `(avy-lead-face ((,class (:foreground ,mono1 :background ,blue))))
+   `(avy-lead-face-0 ((,class (:foreground ,mono1 :background ,orange))))
+   `(avy-lead-face-1 ((,class (:foreground ,mono1 :background ,red))))
+   `(avy-lead-face-2 ((,class (:foreground ,mono1 :background ,magenta))))
 
    ;; --- Completion & narrowing (modern UIs) ---
    `(vertico-current ((,class (:background ,mono0))))
@@ -893,9 +891,9 @@ the selected window\", which a terminal has no notion of."
    `(consult-buffer ((,class (:foreground ,mono6))))
    `(consult-file ((,class (:foreground ,mono5))))
    `(corfu-default ((,class (:background ,mono2))))
-   `(corfu-current ((,class (:foreground ,mono7 :background ,mono0))))
+   `(corfu-current ((,class (:foreground ,mono6 :background ,mono0))))
    `(corfu-bar ((,class (:background ,mono5))))
-   `(corfu-border ((,class (:background ,mono3))))
+   `(corfu-border ((,class (:background ,mono1))))
 
    ;; --- Navigation & project (dired, bookmark, etc.) ---
    `(dired-directory ((,class (:inherit font-lock-type-face))))
@@ -1025,8 +1023,8 @@ the selected window\", which a terminal has no notion of."
    ;; keyword went page-colour on panel-colour, which is not a duller badge
    ;; but an invisible word.  In `:foreground' the band cannot reach it: all
    ;; that moves is the glyph, one step along the mono ramp.
-   `(org-todo ((,class (:foreground ,red :background ,mono0 :inverse-video t))))
-   `(org-done ((,class (:foreground ,green :background ,mono0 :inverse-video t))))
+   `(org-todo ((,class (:foreground ,red :background ,mono1 :inverse-video t))))
+   `(org-done ((,class (:foreground ,green :background ,mono1 :inverse-video t))))
    `(org-headline-todo ((,class (:foreground ,mono7))))
    `(org-headline-done ((,class (:inherit font-lock-comment-face))))
    `(org-archived ((,class (:inherit org-headline-done))))
@@ -1049,7 +1047,7 @@ the selected window\", which a terminal has no notion of."
    `(org-time-stamp ((,class (:foreground ,mono5))))
    `(org-date ((,class (:foreground ,mono5))))
    `(org-sexp-date ((,class (:foreground ,mono5))))
-   `(org-date-selected ((,class (:foreground ,mono0 :background ,orange))))
+   `(org-date-selected ((,class (:foreground ,mono1 :background ,orange))))
 
    ;; Formula / footnote
    `(org-formula ((,class (:foreground ,yellow))))
@@ -1075,18 +1073,18 @@ the selected window\", which a terminal has no notion of."
    `(org-upcoming-deadline ((,class (:inherit org-scheduled-previously))))
 
    ;; Habits
-   `(org-habit-clear-face ((,class (:foreground ,mono0 :background ,blue))))
-   `(org-habit-clear-future-face ((,class (:foreground ,blue :background ,mono3))))
-   `(org-habit-ready-face ((,class (:foreground ,mono0 :background ,green))))
-   `(org-habit-ready-future-face ((,class (:foreground ,green :background ,mono3))))
-   `(org-habit-alert-face ((,class (:foreground ,mono0 :background ,yellow))))
-   `(org-habit-alert-future-face ((,class (:foreground ,yellow :background ,mono3))))
-   `(org-habit-overdue-face ((,class (:foreground ,mono0 :background ,red))))
-   `(org-habit-overdue-future-face ((,class (:foreground ,orange :background ,mono3))))
+   `(org-habit-clear-face ((,class (:foreground ,mono1 :background ,blue))))
+   `(org-habit-clear-future-face ((,class (:inherit org-habit-clear-face))))
+   `(org-habit-ready-face ((,class (:foreground ,mono1 :background ,green))))
+   `(org-habit-ready-future-face ((,class (:inherit org-habit-ready-face))))
+   `(org-habit-alert-face ((,class (:foreground ,mono1 :background ,yellow))))
+   `(org-habit-alert-future-face ((,class (:inherit org-habit-alert-face))))
+   `(org-habit-overdue-face ((,class (:foreground ,mono1 :background ,red))))
+   `(org-habit-overdue-future-face ((,class (:inherit org-habit-overdue-face))))
 
    ;; Other org (low-frequency)
    `(org-clock-overlay ((,class (:foreground ,mono7 :background ,mono3))))
-   `(org-mode-line-clock-overrun ((,class (:foreground ,mono0 :background ,red))))
+   `(org-mode-line-clock-overrun ((,class (:foreground ,mono1 :background ,red))))
    `(org-dispatcher-highlight ((,class (:foreground ,mono7 :background ,mono0 :weight bold))))
    `(org-latex-and-related ((,class (:foreground ,mono5))))
    `(org-agenda-restriction-lock ((,class (:foreground ,mono7 :background ,mono3))))
@@ -1132,9 +1130,8 @@ the selected window\", which a terminal has no notion of."
    ;; two steps of grey apart or a change of hue.
    `(org-foresight-report-booked ((,class (:foreground ,mono6))))
    `(org-foresight-report-travel ((,class (:foreground ,mono4))))
-   ;; The quietest the ramp goes and still be text: mono4, shared with the
-   ;; other faint markers.  Below that is the background half, where a word
-   ;; cannot be read.
+   ;; The quietest the ramp goes and still be text, shared with the other
+   ;; faint markers.
    `(org-foresight-report-promised ((,class (:foreground ,mono4))))
    `(org-foresight-report-spare ((,class (:foreground ,blue))))
    ;; Emptiness, wherever it is drawn: the same dot in the bar and in the
@@ -1196,7 +1193,7 @@ the selected window\", which a terminal has no notion of."
    `(magit-diff-hunk-heading-selection ((,class (:inherit magit-diff-hunk-heading-highlight :foreground ,orange))))
    `(magit-diff-conflict-heading ((,class (:inherit magit-diff-hunk-heading))))
    `(magit-diff-revision-summary ((,class (:inherit magit-diff-hunk-heading))))
-   `(magit-diff-lines-heading ((,class (:background ,orange :foreground ,mono0))))
+   `(magit-diff-lines-heading ((,class (:background ,orange :foreground ,mono1))))
    `(magit-diff-context ((,class (:foreground ,mono5))))
    ;; The hunk point is in takes mono0 and every other hunk takes mono2, so
    ;; the depth says only which hunk is current and the fg hue keeps saying
@@ -1249,8 +1246,8 @@ the selected window\", which a terminal has no notion of."
    ;; stack=magenta (escalate), exit=orange (decisive leave), noop=mono4
    ;; (shadow ramp). Box colors of the (non)standard-key faces are pinned
    ;; to gensho's cyan / magenta instead of vanilla ANSI cyan / magenta.
-   `(transient-enabled-suffix  ((,class (:background ,green :foreground ,mono0 :weight bold))))
-   `(transient-disabled-suffix ((,class (:background ,red   :foreground ,mono0 :weight bold))))
+   `(transient-enabled-suffix  ((,class (:background ,green :foreground ,mono1 :weight bold))))
+   `(transient-disabled-suffix ((,class (:background ,red   :foreground ,mono1 :weight bold))))
    `(transient-key-stay        ((,class (:foreground ,green))))
    `(transient-key-noop        ((,class (:foreground ,mono4))))
    `(transient-key-return      ((,class (:foreground ,yellow))))
@@ -1284,10 +1281,10 @@ the selected window\", which a terminal has no notion of."
 
    ;; ediff: fine diff (sub-region emphasis within current; the hue fills, since the
    ;; current diff already holds the near depth)
-   `(ediff-fine-diff-A           ((,class (:background ,red    :foreground ,mono0 :weight bold))))
-   `(ediff-fine-diff-B           ((,class (:background ,green  :foreground ,mono0 :weight bold))))
-   `(ediff-fine-diff-C           ((,class (:background ,yellow :foreground ,mono0 :weight bold))))
-   `(ediff-fine-diff-Ancestor    ((,class (:background ,blue   :foreground ,mono0 :weight bold))))
+   `(ediff-fine-diff-A           ((,class (:background ,red    :foreground ,mono1 :weight bold))))
+   `(ediff-fine-diff-B           ((,class (:background ,green  :foreground ,mono1 :weight bold))))
+   `(ediff-fine-diff-C           ((,class (:background ,yellow :foreground ,mono1 :weight bold))))
+   `(ediff-fine-diff-Ancestor    ((,class (:background ,blue   :foreground ,mono1 :weight bold))))
 
    ;; ediff: non-current diffs (alternating markers; quiet so current wins)
    `(ediff-even-diff-A           ((,class (:background ,mono2 :foreground ,mono5))))
@@ -1307,20 +1304,20 @@ the selected window\", which a terminal has no notion of."
    `(eww-valid-certificate ((,class (:weight bold :foreground ,mono6))))
 
    ;; --- org-timeblock (calendar day/week time blocks) ---
-   ;; Block palette maps to gensho's muted hues with mono0 knockout text (as in
+   ;; Block palette maps to gensho's muted hues with knockout text (as in
    ;; `match'); the hour line and selection/mark use the mono ramp so they never
    ;; collide with a block hue.  now = green (present position); red is reserved
    ;; for caution/warning and is therefore not used for the now line.
-   `(org-timeblock-red     ((,class (:background ,red     :foreground ,mono0 :extend t))))
-   `(org-timeblock-green   ((,class (:background ,green   :foreground ,mono0 :extend t))))
-   `(org-timeblock-yellow  ((,class (:background ,yellow  :foreground ,mono0 :extend t))))
-   `(org-timeblock-blue    ((,class (:background ,blue    :foreground ,mono0 :extend t))))
-   `(org-timeblock-magenta ((,class (:background ,magenta :foreground ,mono0 :extend t))))
-   `(org-timeblock-cyan    ((,class (:background ,cyan    :foreground ,mono0 :extend t))))
+   `(org-timeblock-red     ((,class (:background ,red     :foreground ,mono1 :extend t))))
+   `(org-timeblock-green   ((,class (:background ,green   :foreground ,mono1 :extend t))))
+   `(org-timeblock-yellow  ((,class (:background ,yellow  :foreground ,mono1 :extend t))))
+   `(org-timeblock-blue    ((,class (:background ,blue    :foreground ,mono1 :extend t))))
+   `(org-timeblock-magenta ((,class (:background ,magenta :foreground ,mono1 :extend t))))
+   `(org-timeblock-cyan    ((,class (:background ,cyan    :foreground ,mono1 :extend t))))
    `(org-timeblock-hours-line ((,class (:background ,mono3 :extend t))))
    `(org-timeblock-current-time-indicator ((,class (:background ,green))))
-   `(org-timeblock-select ((,class (:background ,mono5 :foreground ,mono0 :extend t))))
-   `(org-timeblock-mark ((,class (:background ,mono0 :foreground ,mono7 :extend t))))))
+   `(org-timeblock-select ((,class (:background ,mono0 :foreground ,mono7 :extend t))))
+   `(org-timeblock-mark ((,class (:background ,mono2 :foreground ,mono7 :extend t))))))
 
 ;; ANSI 16-color slot strategy.
 ;;
