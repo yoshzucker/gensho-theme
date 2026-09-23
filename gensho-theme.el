@@ -691,10 +691,16 @@ the selected window\", which a terminal has no notion of."
   ;;   Modus sparse) avoid it; heavier themes (Doom, Zenburn) use it
   ;;   sparsely.  Reason for avoiding: explicit bg/fg pairs are more
   ;;   predictable and interact more cleanly with the mono-ramp planes.
-  ;;   Gensho choice: never use `:inverse-video'.  Where defface has
-  ;;   it (`org-todo', `org-done', `org-date-selected'), gensho writes
-  ;;   the equivalent display as an explicit `:foreground' / `:background'
-  ;;   pair (theme replace drops the defface inverse-video for free).
+  ;;   Gensho choice: only where a filled patch has to survive a
+  ;;   highlight.  An overlay's face outranks the text's attribute by
+  ;;   attribute, and `hl-line' sets a background and nothing else -- so a
+  ;;   fill written as `:background' is the one attribute the band replaces,
+  ;;   and the patch goes.  Written the other way round -- colour in
+  ;;   `:foreground', the page in `:background', swapped at draw time -- the
+  ;;   band reaches only the half that is not the fill.  That is `org-todo',
+  ;;   `org-done' and the org-habit graph.  Everywhere else the pair is
+  ;;   explicit, which is more predictable and reads more cleanly against
+  ;;   the mono ramp.
   ;;
   ;; :inherit (not a decoration but related)
   ;;   When defface `:inherit' aligns with gensho intent, RESTATE it
@@ -1077,13 +1083,17 @@ the selected window\", which a terminal has no notion of."
    `(org-upcoming-deadline ((,class (:inherit org-scheduled-previously))))
 
    ;; Habits
-   `(org-habit-clear-face ((,class (:foreground ,mono1 :background ,blue))))
+   ;; The graph, drawn the way the TODO badges are: the colour sits in
+   ;; `:foreground' and `:inverse-video' turns it into the fill.  As a
+   ;; `:background' the fill was the one attribute `hl-line' replaces, so
+   ;; the consistency graph vanished from whichever row the cursor was on.
+   `(org-habit-clear-face ((,class (:foreground ,blue :background ,mono1 :inverse-video t))))
    `(org-habit-clear-future-face ((,class (:inherit org-habit-clear-face))))
-   `(org-habit-ready-face ((,class (:foreground ,mono1 :background ,green))))
+   `(org-habit-ready-face ((,class (:foreground ,green :background ,mono1 :inverse-video t))))
    `(org-habit-ready-future-face ((,class (:inherit org-habit-ready-face))))
-   `(org-habit-alert-face ((,class (:foreground ,mono1 :background ,yellow))))
+   `(org-habit-alert-face ((,class (:foreground ,yellow :background ,mono1 :inverse-video t))))
    `(org-habit-alert-future-face ((,class (:inherit org-habit-alert-face))))
-   `(org-habit-overdue-face ((,class (:foreground ,mono1 :background ,red))))
+   `(org-habit-overdue-face ((,class (:foreground ,red :background ,mono1 :inverse-video t))))
    `(org-habit-overdue-future-face ((,class (:inherit org-habit-overdue-face))))
 
    ;; Other org (low-frequency)
