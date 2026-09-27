@@ -1251,6 +1251,34 @@ the selected window\", which a terminal has no notion of."
    `(magit-blame-name ((,class (:foreground ,mono6))))
    `(magit-blame-date ((,class (:foreground ,mono5))))
 
+   ;; --- ansi-color ---
+   ;; The sixteen a terminal speaks in.  These are Emacs's own faces, and
+   ;; what ghostel inherits for the terminal it draws a shell and Claude
+   ;; Code in; compilation output and eshell colour themselves from them
+   ;; too.  Undefined they are the stock primaries, which is a different
+   ;; palette sitting inside this one.
+   ;;
+   ;; Each sets foreground and background alike, as the defaults do: one
+   ;; code can ask for either.  The mapping is `gensho--export-name-map',
+   ;; the one that writes this palette out for terminals outside Emacs -- a
+   ;; terminal inside and one outside should not disagree about what red is.
+   `(ansi-color-black          ((,class (:foreground ,mono0   :background ,mono0))))
+   `(ansi-color-red            ((,class (:foreground ,red     :background ,red))))
+   `(ansi-color-green          ((,class (:foreground ,green   :background ,green))))
+   `(ansi-color-yellow         ((,class (:foreground ,yellow  :background ,yellow))))
+   `(ansi-color-blue           ((,class (:foreground ,blue    :background ,blue))))
+   `(ansi-color-magenta        ((,class (:foreground ,magenta :background ,magenta))))
+   `(ansi-color-cyan           ((,class (:foreground ,cyan    :background ,cyan))))
+   `(ansi-color-white          ((,class (:foreground ,mono6   :background ,mono6))))
+   `(ansi-color-bright-black   ((,class (:foreground ,mono2   :background ,mono2))))
+   `(ansi-color-bright-red     ((,class (:foreground ,orange  :background ,orange))))
+   `(ansi-color-bright-green   ((,class (:foreground ,mono3   :background ,mono3))))
+   `(ansi-color-bright-yellow  ((,class (:foreground ,mono4   :background ,mono4))))
+   `(ansi-color-bright-blue    ((,class (:foreground ,mono5   :background ,mono5))))
+   `(ansi-color-bright-magenta ((,class (:foreground ,purple  :background ,purple))))
+   `(ansi-color-bright-cyan    ((,class (:foreground ,cyan    :background ,cyan))))
+   `(ansi-color-bright-white   ((,class (:foreground ,mono7   :background ,mono7))))
+
    ;; --- transient ---
    ;; Override only the faces that hard-code hex/ANSI names in their defface.
    ;; The rest of transient's faces inherit cleanly (font-lock, shadow,
