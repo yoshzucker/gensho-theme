@@ -1124,26 +1124,40 @@ the selected window\", which a terminal has no notion of."
    `(deft-header-face ((,class (:inherit font-lock-builtin-face :weight bold))))
    `(deft-title-face ((,class (:inherit font-lock-constant-face :weight bold))))
 
-   ;; org-dayflow -- timeline column chrome on the mono ramp (not raw gray20).
-   ;; Three bands can land on the same column: the weekend shade, the current
-   ;; time and the cursor.  The weekend one is always there, so it takes the
-   ;; idle step (mono2) and the two moving ones take the levels the ramp
-   ;; gives to what is happening now: mono3 for the current time and mono0,
-   ;; the current level, for the cursor.  Without the gap, a Saturday would
-   ;; swallow the current-time column on two days in seven.  dim0/dim1 are not
-   ;; candidates: those levels mean "this window is not the selected one"
-   ;; wherever solaire-mode or auto-dim-other-buffers is on, and a weekend is
-   ;; not that.
-   `(org-dayflow-weekend-column-face ((,class (:background ,mono2 :extend t))))
-   `(org-dayflow-weekend-face ((,class (:foreground ,mono4 :weight bold))))
-   `(org-dayflow-weekday-face ((,class (:foreground ,mono5))))
-   `(org-dayflow-units-face ((,class (:foreground ,mono5))))
-   `(org-dayflow-label-face ((,class (:foreground ,mono5))))
-   `(org-dayflow-query-face ((,class (:inherit org-agenda-structure))))
-   `(org-dayflow-now-column-face ((,class (:background ,mono3 :extend t))))
-   `(org-dayflow-cursor-column-face ((,class (:background ,mono0 :extend t))))
-   `(org-dayflow-now-unit-face ((,class (:inherit calendar-today))))
-   `(org-dayflow-cursor-unit-face ((,class (:inherit org-date-selected))))
+   ;; org-dayflow -- the dates are what a week is told by, so they carry
+   ;; the colour and the columns carry none.  The days and the month in the
+   ;; foreground (mono7), the weekend in red, and no weight on any of them:
+   ;; bold does not tell one date from another at this size, the colour
+   ;; does.  A heading is not bold either; its rule and its bracket already
+   ;; say it holds rows.  Today and the cursor's day are a ground under the
+   ;; date, orange and green, with the background colour on it to read
+   ;; through.
+   ;; No band runs down the grid -- not the weekend's, today's or the
+   ;; cursor's: every shade down the rows is one the titles are read
+   ;; through, and the date row already says which column is which.
+   ;; What is around the dates and the titles -- the query, the sparkline,
+   ;; the outline -- is one step, mono5, below the dates they serve.  The
+   ;; sparkline is in that one colour whatever its cells hold: its height
+   ;; is the load, and the kind of date is on the rows, a ◆ for a deadline
+   ;; and a box for the work.
+   `(org-dayflow-weekend-column-face ((,class ())))
+   `(org-dayflow-weekend-face ((,class (:foreground ,red))))
+   `(org-dayflow-weekday-face ((,class (:foreground ,mono7))))
+   `(org-dayflow-units-face ((,class (:foreground ,mono7))))
+   `(org-dayflow-label-face ((,class (:foreground ,mono7))))
+   `(org-dayflow-summary-face ((,class ())))
+   `(org-dayflow-query-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-outline-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-histogram-deadline-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-histogram-active-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-histogram-scheduled-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-histogram-deadline-done-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-histogram-active-done-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-histogram-scheduled-done-face ((,class (:foreground ,mono5))))
+   `(org-dayflow-now-column-face ((,class ())))
+   `(org-dayflow-cursor-column-face ((,class ())))
+   `(org-dayflow-now-unit-face ((,class (:foreground ,mono1 :background ,orange))))
+   `(org-dayflow-cursor-unit-face ((,class (:foreground ,mono1 :background ,green))))
    `(org-dayflow-title-done-face ((,class (:inherit org-headline-done :strike-through t))))
 
    ;; org-foresight — the capacity bar and the rows it adds to the agenda.
